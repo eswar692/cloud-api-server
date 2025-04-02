@@ -162,7 +162,7 @@ const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Invalid password" }); //
 
-    const maxAge = 1000 * 60 * 60 * 24; // 1 day
+    const maxAge = 1000 * 60 * 60 * 24 * 3; // 3 day
     const token = jwt.sign({ id: user._id }, process.env.secret_url_jwt, {
       expiresIn: maxAge,
     });
@@ -170,8 +170,9 @@ const login = async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: true,
       maxAge,
-      secure: false,
+      secure: true,
       sameSite: "none",
+      path: "/",
     });
     return res
       .status(201)
@@ -185,6 +186,11 @@ const login = async (req, res) => {
 // get User
 const getUser = async (req, res) => {
   const userId = req.userId;
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "User ID is required" });
+  }
   try {
     const user = await User.findById(userId);
     if (!user) {

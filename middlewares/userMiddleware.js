@@ -10,10 +10,7 @@ const verifyToken = async (req, res, next) => {
       .json({ success: false, message: "Please login first" });
   }
 
-  const decoded = await promisify(jwt.verify)(
-    token,
-    process.env.secret_url_jwt
-  );
+  const decoded = await jwt.verify(token, process.env.secret_url_jwt);
 
   req.userId = decoded.id;
 
