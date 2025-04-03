@@ -17,9 +17,14 @@ const { connectRedis } = require("./utils/redisClient");
 
 const webhookRoute = require("./routes/webhookRoute");
 const userRoute = require("./routes/userRoutes");
+const apiRoute = require("./routes/apiRoutes");
+const initSocket = require("./utils/socket");
+app.use("/api", apiRoute);
+
 
 app.use("/webhook", webhookRoute);
 app.use("/user", userRoute);
+
 
 mongoose
   .connect(process.env.mongo_url)
@@ -29,4 +34,6 @@ mongoose
 connectRedis();
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+initSocket(server);
+
