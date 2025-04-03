@@ -1,9 +1,11 @@
 const redis = require("redis");
+require("dotenv").config();
 
 const connectRedis = async () => {
   try {
     const client = redis.createClient({
-      url: "redis://127.0.0.1:6379", // Add Redis URL explicitly
+      url: process.env.redis_url, // Add Redis URL explicitly
+      socket: { reconnectStrategy: 3 }, // Auto-reconnect
     });
 
     client.on("error", (err) => {
