@@ -172,7 +172,6 @@ const login = async (req, res) => {
       maxAge,
       secure: true,
       sameSite: "none",
-      path: "/",
     });
     return res
       .status(201)
