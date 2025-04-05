@@ -12,6 +12,6 @@ router.post("/api-settings", verifyToken, api);
 router.get("/get-api-settings", verifyToken, getApi);
 
 // Route to handle API requests in get whatsapp cloud api details
-router.get("/get-cloud-api-details", getCloudApiDetails);
+router.get("/get-cloud-api-details",verifyToken, getCloudApiDetails);
 
 module.exports = router;

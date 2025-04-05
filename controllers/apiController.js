@@ -3,7 +3,6 @@ const User = require("../Model/User");
 const axios = require("axios");
 const { connectRedis } = require("../utils/redisClient");
 
-const redis = connectRedis();
 
 const api = async (req, res) => {
   const userId = req.userId;
@@ -73,7 +72,7 @@ const getApi = async (req, res) => {
 
 //GET in whatsapp CLoud api details
 const getCloudApiDetails = async (req, res) => {
-  const { userId } = req.body;
+  const { userId } = req;
   if (!userId) {
     return res.status(401).json({
       success: false,
@@ -82,8 +81,26 @@ const getCloudApiDetails = async (req, res) => {
   }
   try {
     // Check if the user exists
+    const redis = await connectRedis();
     const redisGet = await redis.get(`${userId}api`);
-    console.log(redisGet);
+    if (redisGet) {
+      const api = JSON.parse(redisGet);
+      const { data } = await axios.get(`https://graph.facebook.com/v22.0/${api.phoneNumberId}`, {
+        headers: {
+          Authorization: `Bearer ${api.accessToken}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      return res.status(201).json({
+        success: true,
+        message: "API is working",
+        data: api,
+        apiDetails: data,
+      });
+    }
+
+
     const api = await Api.findOne({ userId });
     if (!api) {
       return res.status(401).json({
@@ -92,12 +109,13 @@ const getCloudApiDetails = async (req, res) => {
       });
     }
     // Check if the API is already stored in Redis
-    const redisValue = await redis.set(
-      `${api._id}api`,
+    const redisValue = await redis?.set(
+      `${api.userId}api`,
       JSON.stringify(api),
       "EX",
       24 * 60 * 60
     ); // Set expiration time to 24 hours
+    
 
     if (!api?.phoneNumber) {
       const { data } = await axios.get(
@@ -130,6 +148,7 @@ const getCloudApiDetails = async (req, res) => {
         success: true,
         message: "API is working",
         data: updatedApi,
+        apiDetails: data,
       });
     }
 
@@ -143,11 +162,21 @@ const getCloudApiDetails = async (req, res) => {
           },
         }
       );
+      if(data.verified_name !== api.dispalyName) {
+        api.dispalyName = data.verified_name;
+        api.save();
+      }
+      if(data.quality_rating !== api.qualityRating) {
+        api.qualityRating = data.quality_rating;
+        api.save();
+
+      }
 
       return res.status(201).json({
         success: true,
         message: "API is working",
         data: api,
+        apiDetails: data,
       });
     }
   } catch (error) {
