@@ -19,10 +19,12 @@ const webhookRoute = require("./routes/webhookRoute");
 const userRoute = require("./routes/userRoutes");
 const apiRoute = require("./routes/apiRoutes");
 const initSocket = require("./utils/socket");
+const contactRoute = require("./routes/contactRoutes");
 app.use("/api", apiRoute);
 
 app.use("/webhook", webhookRoute);
 app.use("/user", userRoute);
+app.use("/contact", contactRoute);
 
 mongoose
   .connect(process.env.mongo_url)

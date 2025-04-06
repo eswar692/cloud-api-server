@@ -1,9 +1,12 @@
+const Contact = require("../Model/Contact");
 const Webhook = require("../Model/Webhook");
 
 const checkMessageExists = new Set();
 getWebhooks = async (req, res) => {
   const data = req.body;
   const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
+  const apiNumber =
+    data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
 
   if (checkMessageExists.has(message?.id)) {
     return res.status(200);
@@ -29,6 +32,21 @@ getWebhooks = async (req, res) => {
       timestamp: message.timestamp,
     };
     const webhook = await Webhook.create(messageData);
+    const contact = await Contact.findOne({
+      phoneNumber: message.from,
+    });
+    if (!contact) {
+      await Contact.create({
+        displayName: profileName,
+        phoneNumber: message.from,
+        userApiNumber: apiNumber,
+        whatsappUserTime: message.timestamp,
+      });
+    } else {
+      contact.whatsappUserTime = message.timestamp; // update field
+      await contact.save(); // save the changes
+    }
+
     checkMessageExists.add(message?.id);
     clearTimeout(() => {
       checkMessageExists.delete(message.id);
