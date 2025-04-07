@@ -3,7 +3,6 @@ const User = require("../Model/User");
 const axios = require("axios");
 const { connectRedis } = require("../utils/redisClient");
 
-
 const api = async (req, res) => {
   const userId = req.userId;
   const { whatsappId, phoneNumberId, accessToken } = req.body;
@@ -85,12 +84,15 @@ const getCloudApiDetails = async (req, res) => {
     const redisGet = await redis.get(`${userId}api`);
     if (redisGet) {
       const api = JSON.parse(redisGet);
-      const { data } = await axios.get(`https://graph.facebook.com/v22.0/${api.phoneNumberId}`, {
-        headers: {
-          Authorization: `Bearer ${api.accessToken}`,
-          "Content-Type": "application/json",
-        },
-      })
+      const { data } = await axios.get(
+        `https://graph.facebook.com/v22.0/${api.phoneNumberId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${api.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       return res.status(201).json({
         success: true,
@@ -99,7 +101,6 @@ const getCloudApiDetails = async (req, res) => {
         apiDetails: data,
       });
     }
-
 
     const api = await Api.findOne({ userId });
     if (!api) {
@@ -115,9 +116,8 @@ const getCloudApiDetails = async (req, res) => {
       "EX",
       24 * 60 * 60
     ); // Set expiration time to 24 hours
-    
 
-    if (!api?.phoneNumber) {
+    if (!api.phoneNumber) {
       const { data } = await axios.get(
         `https://graph.facebook.com/v22.0/${api.phoneNumberId}`,
         {
@@ -133,7 +133,8 @@ const getCloudApiDetails = async (req, res) => {
           message: "API not found",
         });
       }
-      api.phoneNumber = data.display_phone_number;
+      const phoneNumber = data.display_phone_number.replace("/Dg", "");
+      api.phoneNumber = phoneNumber;
       api.qualityRating = data.quality_rating;
       api.dispalyName = data.verified_name;
       const updatedApi = await api.save();
@@ -162,14 +163,13 @@ const getCloudApiDetails = async (req, res) => {
           },
         }
       );
-      if(data.verified_name !== api.dispalyName) {
+      if (data.verified_name !== api.dispalyName) {
         api.dispalyName = data.verified_name;
         api.save();
       }
-      if(data.quality_rating !== api.qualityRating) {
+      if (data.quality_rating !== api.qualityRating) {
         api.qualityRating = data.quality_rating;
         api.save();
-
       }
 
       return res.status(201).json({

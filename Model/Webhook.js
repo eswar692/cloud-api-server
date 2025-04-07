@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const WebhookSchema = new mongoose.Schema({
   sender: {
@@ -19,24 +19,22 @@ const WebhookSchema = new mongoose.Schema({
   },
   textMessage: {
     type: String,
-    required: function() {
-        return this.type === 'text';
+    required: function () {
+      return this.type === "text";
     },
   },
   imageMessage: {
     type: String,
-    required: function() {
-        return this.type === 'image';
+    required: function () {
+      return this.type === "image";
     },
   },
   messageId: {
     type: String,
-    required: true,
   },
   timestamp: {
     type: Date,
-    required: true,
-},
+  },
 });
 
-module.exports = mongoose.model('Webhook', WebhookSchema);
+module.exports = mongoose.model("Webhook", WebhookSchema);

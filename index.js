@@ -18,7 +18,7 @@ const { connectRedis } = require("./utils/redisClient");
 const webhookRoute = require("./routes/webhookRoute");
 const userRoute = require("./routes/userRoutes");
 const apiRoute = require("./routes/apiRoutes");
-const initSocket = require("./utils/socket");
+const { initSocket } = require("./utils/socket");
 const contactRoute = require("./routes/contactRoutes");
 app.use("/api", apiRoute);
 

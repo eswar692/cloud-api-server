@@ -1,5 +1,7 @@
+const Api = require("../Model/Api.js");
 const Contact = require("../Model/Contact");
 const Webhook = require("../Model/Webhook");
+const { sendContacts, sendWebhooks } = require("../utils/socket");
 
 const checkMessageExists = new Set();
 getWebhooks = async (req, res) => {
@@ -15,15 +17,13 @@ getWebhooks = async (req, res) => {
   if (!data || !data.entry)
     return res.status(401).json({ success: false, message: "No data found" });
 
-  const receiver =
-    data?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id;
   const profileName =
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
   try {
     // Check if the message is a text message
     const messageData = {
       sender: message.from,
-      receiver: receiver,
+      receiver: apiNumber,
       name: profileName,
       type: message.type,
       textMessage: message.text?.body,
@@ -36,15 +36,35 @@ getWebhooks = async (req, res) => {
       phoneNumber: message.from,
     });
     if (!contact) {
-      await Contact.create({
+      const contact = await Contact.create({
         displayName: profileName,
         phoneNumber: message.from,
         userApiNumber: apiNumber,
         whatsappUserTime: message.timestamp,
       });
+
+      const userApi = await Api.findOne({ phoneNumber: contact.userApiNumber });
+      if (userApi) {
+        const userId = userApi.userId.toString();
+        await sendContacts(userId);
+      }
     } else {
       contact.whatsappUserTime = message.timestamp; // update field
-      await contact.save(); // save the changes
+      const updatedContact = await contact.save(); // save the changes
+
+      const userApi = await Api.findOne({
+        phoneNumber: updatedContact.userApiNumber,
+      });
+      if (userApi) {
+        const userId = userApi.userId.toString();
+        await sendContacts(userId);
+      }
+    }
+
+    const userApi = await Api.findOne({ phoneNumber: apiNumber });
+    if (userApi) {
+      const userId = userApi.userId.toString();
+      await sendWebhooks(messageData, userId);
     }
 
     checkMessageExists.add(message?.id);

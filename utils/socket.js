@@ -1,16 +1,44 @@
 const { Server } = require("socket.io");
 const Contact = require("../Model/Contact");
 const Api = require("../Model/Api");
+const Webhook = require("../Model/Webhook");
+
+let io;
+const userObj = new Map();
+
+const sendContacts = async (userId) => {
+  const socketId = userObj.get(userId);
+  if (!socketId) return console.log("Socket ID not found for", userId);
+
+  const userApi = await Api.findOne({ userId });
+  if (!userApi) throw new Error("User not found");
+  const phoneNumber = userApi.phoneNumber.replace(/\D/g, "");
+  console.log(userApi.phoneNumber);
+  const contacts = await Contact.find({
+    userApiNumber: phoneNumber,
+  }).sort({ whatsappUserTime: -1 });
+  console.log("Sending contacts to", socketId);
+
+  io.to(socketId).emit("contacts", contacts);
+};
+
+const sendWebhooks = async (message, userId) => {
+  const socketId = userObj.get(userId);
+  if (!socketId) return console.log("Socket ID not found for", userId);
+
+  const userApi = await Api.findOne({ userId });
+  if (!userApi) throw new Error("User not found");
+  io.to(socketId).emit("receiveMessage", message);
+};
 
 const initSocket = (server) => {
-  const io = new Server(server, {
+  io = new Server(server, {
     cors: {
       origin: "http://localhost:5173",
-      methods: ["GET", "POST"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     },
   });
-  const userObj = new Map();
 
   const disConnect = (socket) => {
     console.log(`user disconnected and soket ID:${socket.id}`);
@@ -23,22 +51,17 @@ const initSocket = (server) => {
       }
     }
   };
+  const sendMessage = async (message) => {
+    console.log(message);
+    const api = await Api.findOne({ phoneNumber: message.sender });
+    const socketId = userObj.get(api.userId.toString());
+    if (!socketId) {
+      return console.log("no socket id found userId:", socketId);
+    }
 
-  /*************  ✨ Windsurf Command 🌟  *************/
-  const sendContacts = async (userId) => {
-    const socketId = userObj.get(userId);
-    if (!socketId) return console.log("Socket ID not found for", userId);
-
-    const userApi = await Api.findOne({ userId });
-    if (!userApi) throw new Error("User not found");
-    const phoneNumber = userApi.phoneNumber.split(" ");
-    console.log(userApi.phoneNumber);
-    const contacts = await Contact.find({
-      userApiNumber: userApi.phoneNumber,
-    }).sort({ whatsappUserTime: -1 });
-    console.log("Sending contacts to", socketId);
-
-    io.to(socketId).emit("contacts", contacts);
+    const messageSave = await Webhook.create(message);
+    console.log(messageSave);
+    io.to(socketId).emit("receiveMessage", messageSave);
   };
 
   io.on("connection", (socket) => {
@@ -53,9 +76,14 @@ const initSocket = (server) => {
     );
 
     sendContacts(userId);
+    socket.on("sendMessage", sendMessage);
 
     socket.on("disconnect", () => disConnect(socket));
   });
 };
 
-module.exports = initSocket;
+module.exports = {
+  initSocket,
+  sendContacts,
+  sendWebhooks,
+};
