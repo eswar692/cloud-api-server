@@ -32,6 +32,9 @@ const apiSchema = new mongoose.Schema({
   },
 });
 
+// 💡 Create index at schema level
+apiSchema.index({ userId: 1 });
+
 const Api = mongoose.model("Api", apiSchema);
 
 module.exports = Api;

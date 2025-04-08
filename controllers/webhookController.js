@@ -83,6 +83,37 @@ getWebhooks = async (req, res) => {
   }
 };
 
+// all message
+const allMessages = async (req, res) => {
+  const userId = req.userId;
+  if (!userId)
+    return res
+      .status(401)
+      .json({ success: false, message: "User ID is required" });
+  try {
+    const api = await Api.findOne({ userId });
+    if (!api)
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    const messages = await Webhook.find({
+      $or: [{ sender: api.phoneNumber }, { receiver: api.phoneNumber }],
+    }).sort({ timestamp: -1 });
+    if (messages.length === 0) {
+      return res.status(401).json({ success: false, messages: "No message" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "message Gets successfully",
+      data: messages,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(501).json({ success: false, message: error.message });
+  }
+};
+
 const deleteAllMessages = async (req, res) => {
   try {
     await Webhook.deleteMany(); // Delete all messages from the database
@@ -97,4 +128,4 @@ const deleteAllMessages = async (req, res) => {
   }
 };
 
-module.exports = { getWebhooks, deleteAllMessages };
+module.exports = { getWebhooks, allMessages, deleteAllMessages };
