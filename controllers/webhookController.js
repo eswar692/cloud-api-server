@@ -22,14 +22,14 @@ getWebhooks = async (req, res) => {
   try {
     // Check if the message is a text message
     const messageData = {
-      sender: message.from,
+      sender: message?.from,
       receiver: apiNumber,
       name: profileName,
-      type: message.type,
-      textMessage: message.text?.body,
-      imageMessage: message.image?.url,
-      messageId: message.id,
-      timestamp: message.timestamp,
+      type: message?.type,
+      textMessage: message?.text?.body,
+      imageMessage: message?.image?.url,
+      messageId: message?.id,
+      timestamp: new Date(),
     };
     const webhook = await Webhook.create(messageData);
     const contact = await Contact.findOne({
@@ -70,7 +70,7 @@ getWebhooks = async (req, res) => {
     checkMessageExists.add(message?.id);
     clearTimeout(() => {
       checkMessageExists.delete(message.id);
-    }, 60000); // 1 minute timeout
+    }, 120000); // 1 minute timeout
     console.log("webhooks:", webhook);
     return res.status(201).json({
       success: true,
@@ -98,7 +98,7 @@ const allMessages = async (req, res) => {
         .json({ success: false, message: "User not found" });
     const messages = await Webhook.find({
       $or: [{ sender: api.phoneNumber }, { receiver: api.phoneNumber }],
-    }).sort({ timestamp: -1 });
+    }).sort({ timestamp: 1 });
     if (messages.length === 0) {
       return res.status(401).json({ success: false, messages: "No message" });
     }

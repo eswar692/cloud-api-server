@@ -37,4 +37,6 @@ const WebhookSchema = new mongoose.Schema({
   },
 });
 
+WebhookSchema.index({ sender: 1, receiver: 1, messageId: 1 });
+
 module.exports = mongoose.model("Webhook", WebhookSchema);
