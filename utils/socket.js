@@ -16,7 +16,7 @@ const sendContacts = async (userId) => {
   console.log(userApi.phoneNumber);
   const contacts = await Contact.find({
     userApiNumber: phoneNumber,
-  }).sort({ whatsappUserTime: -1 });
+  }).sort({ whatsappUserTime: 1 });
   console.log("Sending contacts to", socketId);
 
   io.to(socketId).emit("contacts", contacts);
@@ -29,14 +29,11 @@ const sendWebhooks = async (message, userId) => {
   try {
     const userApi = await Api.findOne({ userId });
     if (!userApi) throw new Error("User not found");
-    
-  
-  
+
     io.to(socketId).emit("receiveMessage", message);
   } catch (error) {
     console.error("Error sending webhook:", error);
   }
- 
 };
 
 const initSocket = (server) => {
@@ -66,24 +63,27 @@ const initSocket = (server) => {
     if (!socketId) {
       return console.log("no socket id found userId:", socketId);
     }
-    const {data} = await axios.post(`https://graph.facebook.com/v22.0/${api.phoneNumberId}/messages`, {
-      
-      "messaging_product": "whatsapp",
-    "recipient_type": "individual",
-    "to": message.receiver, 
-    "type": "text",
-    "text":{
-      "body": message.textMessage
+    const userId = api.userId.toString();
+    const { data } = await axios.post(
+      `https://graph.facebook.com/v22.0/${api.phoneNumberId}/messages`,
+      {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: message.receiver,
+        type: "text",
+        text: {
+          body: message.textMessage,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${api.accessToken}`,
+        },
+      }
+    );
+    if (data.status === 200) {
+      console.log("send mesage successfully");
     }
-  
-  },{
-    headers: {
-      Authorization: `Bearer ${api.accessToken}`,
-    },
-  })
-  if (data.status === 200) {
-    console.log('send mesage successfully');
-  }
 
     const messageSave = await Webhook.create(message);
     console.log(messageSave);

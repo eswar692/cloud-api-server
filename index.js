@@ -12,6 +12,7 @@ app.use(
 );
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
+const cloudinary = require("cloudinary");
 app.use(cookieParser());
 
 const { connectRedis } = require("./utils/redisClient");
@@ -26,6 +27,12 @@ app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
 app.use("/user", userRoute);
 app.use("/contact", contactRoute);
+
+cloudinary.v2.config({
+  cloud_name: process.env.cloud_name,
+  api_key: process.env.api_key,
+  api_secret: process.env.api_secret,
+});
 
 mongoose
   .connect(process.env.mongo_url)

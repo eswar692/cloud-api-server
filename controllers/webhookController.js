@@ -2,8 +2,10 @@ const Api = require("../Model/Api.js");
 const Contact = require("../Model/Contact");
 const Webhook = require("../Model/Webhook");
 const { sendContacts, sendWebhooks } = require("../utils/socket");
-
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
 const checkMessageExists = new Set();
+
 getWebhooks = async (req, res) => {
   const data = req.body;
   const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
@@ -112,6 +114,22 @@ const allMessages = async (req, res) => {
     console.log(error);
     return res.status(501).json({ success: false, message: error.message });
   }
+};
+
+// image and video messages store in database
+const fileUpload = async (req, res) => {
+  const userId = req.userId;
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "user id required" });
+  }
+  try {
+    const api = await Api.findOne({ userId });
+    if (!api) {
+      return res.status(401).json({ success: true, message: "user not found" });
+    }
+  } catch (error) {}
 };
 
 const deleteAllMessages = async (req, res) => {
