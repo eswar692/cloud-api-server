@@ -5,6 +5,10 @@ const { sendContacts, sendWebhooks } = require("../utils/socket");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const checkMessageExists = new Set();
+const axios = require("axios");
+const { getFileWebhook } = require("../utils/components/webhookComponents/fileWebhook.js");
+const { textMessage } = require("../utils/components/webhookComponents/textWebhook.js");
+const { contactSet } = require("../utils/components/webhookComponents/contact.js");
 
 getWebhooks = async (req, res) => {
   const data = req.body;
@@ -21,63 +25,31 @@ getWebhooks = async (req, res) => {
 
   const profileName =
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
+    let webhook;
   try {
     // Check if the message is a text message
-    const messageData = {
-      sender: message?.from,
-      receiver: apiNumber,
-      name: profileName,
-      type: message?.type,
-      textMessage: message?.text?.body,
-      imageMessage: message?.image?.url,
-      messageId: message?.id,
-      timestamp: new Date(),
-    };
-    const webhook = await Webhook.create(messageData);
-    const contact = await Contact.findOne({
-      phoneNumber: message.from,
-    });
-    if (!contact) {
-      const contact = await Contact.create({
-        displayName: profileName,
-        phoneNumber: message.from,
-        userApiNumber: apiNumber,
-        whatsappUserTime: message.timestamp,
-      });
-
-      const userApi = await Api.findOne({ phoneNumber: contact.userApiNumber });
-      if (userApi) {
-        const userId = userApi.userId.toString();
-        await sendContacts(userId);
-      }
-    } else {
-      contact.whatsappUserTime = message.timestamp; // update field
-      const updatedContact = await contact.save(); // save the changes
-
-      const userApi = await Api.findOne({
-        phoneNumber: updatedContact.userApiNumber,
-      });
-      if (userApi) {
-        const userId = userApi.userId.toString();
-        await sendContacts(userId);
-      }
+    if(message?.type === "text" ){
+     webhook = await textMessage(data)
     }
+    if(message?.type === "image" || message?.type === "video"){
+     webhook = await getFileWebhook(data);
+    }
+    await contactSet(data);
 
     const userApi = await Api.findOne({ phoneNumber: apiNumber });
     if (userApi) {
       const userId = userApi.userId.toString();
-      await sendWebhooks(messageData, userId);
+      await sendWebhooks(webhook, userId);
     }
 
     checkMessageExists.add(message?.id);
     clearTimeout(() => {
       checkMessageExists.delete(message.id);
-    }, 120000); // 1 minute timeout
+    }, 240000); // 1 minute timeout
     console.log("webhooks:", webhook);
     return res.status(201).json({
       success: true,
       message: "Webhook created successfully",
-      webhook,
     });
   } catch (err) {
     console.error("Error in getWebhooks:", err);

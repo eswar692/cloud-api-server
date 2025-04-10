@@ -11,30 +11,41 @@ const sendContacts = async (userId) => {
   if (!socketId) return console.log("Socket ID not found for", userId);
 
   const userApi = await Api.findOne({ userId });
-  if (!userApi) throw new Error("User not found");
+  if (!userApi) console.log("User not found");
   const phoneNumber = userApi.phoneNumber.replace(/\D/g, "");
-  console.log(userApi.phoneNumber);
   const contacts = await Contact.find({
     userApiNumber: phoneNumber,
   }).sort({ whatsappUserTime: 1 });
-  console.log("Sending contacts to", socketId);
 
   io.to(socketId).emit("contacts", contacts);
 };
 
+const individualChat = async (chat) => {
+  const findUser = await Api.findOne({ phoneNumber: chat.apiNumber});
+  if (!findUser) console.log("User not found");
+  const userId = findUser.userId.toString();
+  const socketId = userObj.get(userId);
+  if (!socketId) return console.log("Socket ID not found for", userId);
+  const messages = await Webhook.find({
+    $or: [{ sender: chat.phoneNumber }, { receiver: chat.phoneNumber }],
+  })
+  if (!messages) console.log("Messages not found");
+  io.to(socketId).emit("getIndividualChat", messages);
+}
 const sendWebhooks = async (message, userId) => {
   const socketId = userObj.get(userId);
   if (!socketId) return console.log("Socket ID not found for", userId);
 
   try {
     const userApi = await Api.findOne({ userId });
-    if (!userApi) throw new Error("User not found");
+    if (!userApi) console.log("User not found");
 
     io.to(socketId).emit("receiveMessage", message);
   } catch (error) {
     console.error("Error sending webhook:", error);
   }
 };
+
 
 const initSocket = (server) => {
   io = new Server(server, {
@@ -103,6 +114,7 @@ const initSocket = (server) => {
 
     sendContacts(userId);
     socket.on("sendMessage", sendMessage);
+    socket.on("individualChat", individualChat)
 
     socket.on("disconnect", () => disConnect(socket));
   });
