@@ -32,8 +32,20 @@ const WebhookSchema = new mongoose.Schema({
   messageId: {
     type: String,
   },
+  file: {
+    type: String,
+    required: function () {
+      return this.type === "file";
+    },
+  },
   timestamp: {
     type: Date,
+  },
+  cloudinaryId: {
+    type: String,
+    required: function () {
+      return this.type === "file";
+    },
   },
 });
 
