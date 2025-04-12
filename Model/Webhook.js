@@ -23,29 +23,39 @@ const WebhookSchema = new mongoose.Schema({
       return this.type === "text";
     },
   },
-  fileUrl: {
-    type: String,
-    required: function () {
-      return this.type === "image";
-    },
+  fileData: {
+    type: new mongoose.Schema(
+      {
+        fileType: {
+          type: String,
+          required: function () {
+            return this.type === "file";
+          },
+          enum: ["image", "video", "docs", "audio"],
+        },
+        fileUrl: {
+          type: String,
+          required: function () {
+            return this.type === "file";
+          },
+        },
+        cloudinaryId: {
+          type: String,
+          required: function () {
+            return this.type === "file";
+          },
+        },
+        caption: String,
+      },
+      { _id: false }
+    ),
   },
   messageId: {
     type: String,
   },
-  file: {
-    type: String,
-    required: function () {
-      return this.type === "file";
-    },
-  },
+
   timestamp: {
     type: Date,
-  },
-  cloudinaryId: {
-    type: String,
-    required: function () {
-      return this.type === "file";
-    },
   },
 });
 

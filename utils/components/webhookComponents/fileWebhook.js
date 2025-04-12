@@ -26,10 +26,12 @@ const getFileWebhook = async (data, accessToken) => {
       receiver: apiNumber,
       name: profileName,
       type: "file",
-      file: message?.type,
-      textMessage: undefined,
-      fileUrl: fileUrl.fileUrl,
-      cloudinaryId: fileUrl.fileId,
+      fileData: {
+        fileType: message?.type,
+        fileUrl: fileUrl.fileUrl,
+        cloudinaryId: fileUrl.fileId,
+        caption: message?.caption,
+      },
       messageId: message?.id,
       timestamp: new Date(),
     };

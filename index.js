@@ -20,6 +20,7 @@ const { connectRedis } = require("./utils/redisClient");
 const webhookRoute = require("./routes/webhookRoute");
 const userRoute = require("./routes/userRoutes");
 const apiRoute = require("./routes/apiRoutes");
+const fileRoute = require("./routes/userSideFileROute");
 const { initSocket } = require("./utils/socket");
 const contactRoute = require("./routes/contactRoutes");
 app.use("/api", apiRoute);
@@ -27,6 +28,7 @@ app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
 app.use("/user", userRoute);
 app.use("/contact", contactRoute);
+app.use("/file", fileRoute);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,
