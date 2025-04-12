@@ -80,7 +80,6 @@ const fileUpload = async (req, res) => {
       }
     );
     if (sendFile.status === 200) {
-      await sendWebhooks(message, userId);
     }
     return res.status(200).json({ success: true, data: webhook });
   } catch (error) {
