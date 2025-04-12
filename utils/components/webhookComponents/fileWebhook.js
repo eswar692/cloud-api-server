@@ -13,7 +13,11 @@ const getFileWebhook = async (data, accessToken) => {
   const profileName =
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
 
-  const mediaId = message?.image?.id || message?.video?.id;
+  const mediaId =
+    message?.image?.id ||
+    message?.video?.id ||
+    message?.docs?.id ||
+    message?.audio?.id;
 
   if (!data) return console.log("user not found");
   console.log("stage1");

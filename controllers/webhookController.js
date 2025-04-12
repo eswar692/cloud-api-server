@@ -38,7 +38,12 @@ getWebhooks = async (req, res) => {
     if (message?.type === "text") {
       webhook = await textMessage(data);
     }
-    if (message?.type === "image" || message?.type === "video") {
+    if (
+      message?.type === "image" ||
+      message?.type === "video" ||
+      message?.type === "docs" ||
+      message?.type === "audio"
+    ) {
       console.log("file webhook");
       webhook = await getFileWebhook(data, userApi.accessToken);
     }
