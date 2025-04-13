@@ -91,7 +91,7 @@ const initSocket = (server) => {
     if (data.status === 200) {
       console.log("send mesage successfully");
     }
-
+    message.messageId = data.messages[0].id;
     const messageSave = await Webhook.create(message);
     console.log(messageSave);
     io.to(socketId).emit("receiveMessage", messageSave);
