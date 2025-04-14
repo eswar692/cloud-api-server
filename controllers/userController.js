@@ -170,8 +170,9 @@ const login = async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: true,
       maxAge,
-      secure: true,
-      sameSite: "none",
+      secure: false,
+      sameSite: "lax",
+      domain: "192.168.1.5",
     });
     return res
       .status(201)
