@@ -20,18 +20,6 @@ const sendContacts = async (userId) => {
   io.to(socketId).emit("contacts", contacts);
 };
 
-const individualChat = async (chat) => {
-  const findUser = await Api.findOne({ phoneNumber: chat.apiNumber });
-  if (!findUser) console.log("User not found");
-  const userId = findUser.userId.toString();
-  const socketId = userObj.get(userId);
-  if (!socketId) return console.log("Socket ID not found for", userId);
-  const messages = await Webhook.find({
-    $or: [{ sender: chat.phoneNumber }, { receiver: chat.phoneNumber }],
-  });
-  if (!messages) console.log("Messages not found");
-  io.to(socketId).emit("getIndividualChat", messages);
-};
 const sendWebhooks = async (message, userId) => {
   const socketId = userObj.get(userId);
   if (!socketId) return console.log("Socket ID not found for", userId);
@@ -110,7 +98,6 @@ const initSocket = (server) => {
 
     sendContacts(userId);
     socket.on("sendMessage", sendMessage);
-    socket.on("individualChat", individualChat);
 
     socket.on("disconnect", () => disConnect(socket));
   });
