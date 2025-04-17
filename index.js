@@ -7,7 +7,7 @@ require("dotenv").config();
 
 app.use(
   cors({
-    origin: ["http://192.168.157.183:5173"],
+    origin: ["http://192.168.1.5:5173"],
     credentials: true,
   })
 );
