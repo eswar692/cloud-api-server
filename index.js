@@ -3,15 +3,12 @@ const app = express();
 app.use(express.json());
 const cors = require("cors");
 require("dotenv").config();
+//app.use(cors());
+
 app.use(
   cors({
-    origin: [
-      "http://192.168.1.5:5173",
-      "http://localhost:5173",
-      "http://172.20.10.2:5173",
-    ],
+    origin: ["http://192.168.157.183:5173"],
     credentials: true,
-    autoIndex: true,
   })
 );
 const cookieParser = require("cookie-parser");
@@ -27,12 +24,14 @@ const apiRoute = require("./routes/apiRoutes");
 const fileRoute = require("./routes/userSideFileROute");
 const { initSocket } = require("./utils/socket");
 const contactRoute = require("./routes/contactRoutes");
-app.use("/api", apiRoute);
+const message = require("./routes/messageRoutes");
 
+app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
 app.use("/user", userRoute);
 app.use("/contact", contactRoute);
 app.use("/file", fileRoute);
+app.use("/message", message);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,

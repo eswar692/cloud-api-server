@@ -46,11 +46,7 @@ const sendWebhooks = async (message, userId) => {
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "http://192.168.1.5:5173",
-        "http://172.20.10.2:5173",
-      ],
+      origin: ["http://192.168.157.183:5173"],
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     },

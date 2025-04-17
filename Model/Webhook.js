@@ -57,6 +57,9 @@ const WebhookSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
   },
+  tempId: {
+    type: String,
+  },
 });
 
 WebhookSchema.index({ sender: 1, receiver: 1 });
