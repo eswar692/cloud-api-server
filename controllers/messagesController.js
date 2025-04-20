@@ -22,7 +22,7 @@ const getIndividualChat = async (req, res) => {
         { sender: userApi.phoneNumber, receiver: getCustomerPhoneNumber },
         { sender: getCustomerPhoneNumber, receiver: userApi.phoneNumber },
       ],
-    });
+    },).sort({ timestamp: 1 });
 
     if (!messages) {
       return res
