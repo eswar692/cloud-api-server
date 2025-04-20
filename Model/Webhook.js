@@ -60,6 +60,10 @@ const WebhookSchema = new mongoose.Schema({
   tempId: {
     type: String,
   },
+  status: {
+    type: String,
+    enum: ["pending", "sent", "seen", "failed"],
+  },
 });
 
 WebhookSchema.index({ sender: 1, receiver: 1 });
