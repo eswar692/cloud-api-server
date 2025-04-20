@@ -1,6 +1,5 @@
 const User = require("../Model/User");
 const cloudinary = require("cloudinary").v2;
-const FileType = require("file-type");
 const Webhook = require("../Model/Webhook");
 const { sendWebhooks } = require("../utils/socket");
 const Api = require("../Model/Api");

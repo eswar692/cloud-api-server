@@ -4,12 +4,12 @@ const Webhook = require("../Model/Webhook");
 const getIndividualChat = async (req, res) => {
   const { userId } = req;
   const getCustomerPhoneNumber = req.params.phoneNumber;
-  //   if (!userId || !getCustomerPhoneNumber) {
-  //     return res.status(401).json({
-  //       success: false,
-  //       message: "userId and customer phoneNumber are required",
-  //     });
-  //   }
+  if (!userId || !getCustomerPhoneNumber) {
+    return res.status(401).json({
+      success: false,
+      message: "userId and customer phoneNumber are required",
+    });
+  }
   try {
     const userApi = await Api.findOne({ userId });
     if (!userApi) {
