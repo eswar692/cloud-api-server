@@ -62,10 +62,10 @@ const WebhookSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "sent", "seen", "failed"],
+    enum: ["pending", "sent","delivered", "read", "failed"],
   },
 });
 
-WebhookSchema.index({ sender: 1, receiver: 1 });
+WebhookSchema.index({ sender: 1, receiver: 1, timestamp: 1, messageId: 1 });
 
 module.exports = mongoose.model("Webhook", WebhookSchema);

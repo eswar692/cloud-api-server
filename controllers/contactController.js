@@ -1,12 +1,16 @@
 const Contact = require("../Model/Contact");
 
-const findAllContacts = async (req, res) => {
+const getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find().sort({ whatsappUserTime: -1 });
+    const { userId } = req.params;
+    const contacts = await Contact.find({ userId }).sort({ whatsappUserTime: 1 });
     res.status(200).json(contacts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
-};
+  catch (error) {
+    console.error("Error fetching contacts:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
-module.exports = { findAllContacts };
+
+module.exports = {};

@@ -14,6 +14,7 @@ const {
 const {
   contactSet,
 } = require("../utils/components/webhookComponents/contact.js");
+const { messageStatus } = require("../utils/components/webhookComponents/status.js");
 
 getWebhooks = async (req, res) => {
   const data = req.body;
@@ -53,6 +54,9 @@ getWebhooks = async (req, res) => {
       const userId = userApi.userId.toString();
       await sendWebhooks(webhook, userId);
     }
+    
+     await messageStatus(data);
+
 
     console.log("webhooks:", webhook);
   } catch (err) {

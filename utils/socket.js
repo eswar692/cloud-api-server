@@ -21,6 +21,7 @@ const sendContacts = async (userId) => {
 };
 
 const sendWebhooks = async (message, userId) => {
+  // console.log("send webhook", message, userId);
   const socketId = userObj.get(userId);
   if (!socketId) return console.log("Socket ID not found for", userId);
 
@@ -82,7 +83,7 @@ const initSocket = (server) => {
     message.messageId = data.messages[0].id;
     const messageSave = await Webhook.create(message);
     console.log(messageSave);
-    io.to(socketId).emit("receiveMessage", messageSave);
+    // io.to(socketId).emit("receiveMessage", messageSave); this atep not need because we already emit in sendWebhooks function
   };
 
   io.on("connection", (socket) => {

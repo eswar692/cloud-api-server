@@ -30,6 +30,10 @@ const apiSchema = new mongoose.Schema({
   dispalyName: {
     type: String,
   },
+  messageCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 // 💡 Create index at schema level
