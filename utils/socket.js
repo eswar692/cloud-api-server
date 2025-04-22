@@ -6,19 +6,37 @@ const axios = require("axios").default;
 let io;
 const userObj = new Map();
 
-// const sendContacts = async (userId) => {
-//   const socketId = userObj.get(userId);
-//   if (!socketId) return console.log("Socket ID not found for", userId);
+const sendContacts = async ( data) => {
+  if (!data) return;
+  const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
+  const displayName = data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
+  const apiNumber = data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
+  if (!message || !apiNumber || !displayName) return;
+  
 
-//   const userApi = await Api.findOne({ userId });
-//   if (!userApi) console.log("User not found");
-//   const phoneNumber = userApi.phoneNumber.replace(/\D/g, "");
-//   const contacts = await Contact.find({
-//     userApiNumber: phoneNumber,
-//   }).sort({ whatsappUserTime: -1 });
+  const userApi = await Api.findOne({ phoneNumber: apiNumber });
+  if (!userApi) console.log("User not found");
+  const socketId = userObj.get(userApi.userId.toString());
+  if (!socketId) return console.log("Socket ID not found for", userApi.userId.toString());
+  const contact = await Contact.findOne({userApiNumber: userApi.phoneNumber, phoneNumber: message.from});
+  const tempContact = {
+    apiNumber: userApi.phoneNumber,
+    phoneNumber: message.from,
+    displayName: displayName,
+    whatsappUserTime: new Date(parseInt(message?.timestamp) * 1000),
+    lastMessage: {
+      messageType: message?.type,
+      textMessage: message?.text?.body || null,
+      messageTimestamp: new Date(parseInt(message?.timestamp) * 1000),
+      messageSeen: true,
+      messageCount:contact?.lastMessage.messageCount + 1,
+    }
+  }
 
-//   io.to(socketId).emit("contacts", contacts);
-// };
+  
+
+  io.to(socketId).emit("receiveContacts", tempContact);
+};
 
 const sendWebhooks = async (message, userId) => {
   // console.log("send webhook", message, userId);
@@ -55,7 +73,7 @@ const initSocket = (server) => {
   const sendMessage = async (message) => {
     console.log(message);
     const api = await Api.findOne({ phoneNumber: message.sender });
-    const socketId = userObj.get(api.userId.toString());
+    const socketId = userObj.get(api?.userId.toString());
     if (!socketId) {
       return console.log("no socket id found userId:", socketId);
     }
@@ -79,6 +97,20 @@ const initSocket = (server) => {
     );
     if (data.status === 200) {
       console.log("send mesage successfully");
+      const contact = await Contact.findOneAndUpdate({userApiNumber: api.phoneNumber, phoneNumber: message.receiver},
+        {$set:{
+            whatsappUserTime: message.timestamp,
+            lastMessage:{
+              messageType:message.type,
+              textMessage:message?.textMessage,
+              messageTimestamp: message?.timestamp,
+              messageSeen: false,
+              messageCount: 0,
+            }
+          }
+      }, 
+      {new: true}
+   );
     }
     message.messageId = data.messages[0].id;
     const messageSave = await Webhook.create(message);
@@ -106,6 +138,6 @@ const initSocket = (server) => {
 
 module.exports = {
   initSocket,
-  // sendContacts,
+   sendContacts,
   sendWebhooks,
 };

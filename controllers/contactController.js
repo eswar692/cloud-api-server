@@ -28,9 +28,29 @@ const getContacts = async (req, res) => {
 
 const updateContactNewMessageSeen = async (req, res) => {
   try {
+    const { userId } = req;
+    const { whatsappUserNumber } = req.body;
+    if (!userId || !whatsappUserNumber) {
+      return res.status(400).json({success: false, message: "User ID is required" });
+    }
+    const findUser = await Api.findOne({ userId });
+    if (!findUser) {
+      return res.status(404).json({success: false, message: "User not found" });
+    }
+    
+    const contact = await Contact.findOneAndUpdate(
+      { userApiNumber: findUser.phoneNumber, phoneNumber: whatsappUserNumber },
+      { $set: { "lastMessage.messageSeen": false, "lastMessage.messageCount": 0 } },
+      { new: true } // return updated document
+    );
+
+    if (!contact) {
+      return res.status(404).json({success: false, message: "Contact not found" });
+    }
+    return res.status(200).json({success: true, message: "Contact updated successfully" });
   } catch (error) {
-    return res.json(500).json({});
+    return res.json(500).json({success: false, message: error.message});
   }
 };
 
-module.exports = { getContacts };
+module.exports = { getContacts , updateContactNewMessageSeen };

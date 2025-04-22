@@ -40,6 +40,8 @@ getWebhooks = async (req, res) => {
   try {
     // count all messages
     await messageCount(data);
+    // new message contact send to socket
+    await sendContacts(data);
     // Check if the message is a text message
     if (message?.type === "text") {
       webhook = await textMessage(data);
@@ -61,6 +63,7 @@ getWebhooks = async (req, res) => {
     }
 
     await messageStatus(data);
+   
 
     console.log("webhooks:", webhook);
   } catch (err) {

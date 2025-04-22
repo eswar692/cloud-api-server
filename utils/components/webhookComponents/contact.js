@@ -23,7 +23,8 @@ const contactSet = async (data) => {
       lastMessage: {
         messageType: message?.type,
         textMessage: message?.text?.body || null,
-        messageTimestamp: timestamp.toString(),
+        messageTimestamp: timestamp,
+        messageCount: 1,
       },
     });
 
@@ -38,7 +39,9 @@ const contactSet = async (data) => {
     contact.lastMessage = {
       messageType: message?.type,
       textMessage: message?.text?.body || null,
-      messageTimestamp: timestamp.toString(),
+      messageTimestamp: timestamp,
+      messageCount: (contact.lastMessage?.messageCount || 0) + 1,
+
     };
     const updatedContact = await contact.save(); // save the changes
 

@@ -42,6 +42,10 @@ const contactSchema = new mongoose.Schema({
           type: Boolean,
           default: true,
         },
+        messageCount:{
+          type: Number,
+          default: 0,
+        }
       },
       { _id: false }
     ),
