@@ -13,21 +13,33 @@ const contactSet = async (data) => {
     phoneNumber: message?.from,
   });
   if (!contact) {
+    const timestamp = new Date(parseInt(message?.timestamp) * 1000);
     if (!profileName || !message.from) return;
     const contact = await Contact.create({
       displayName: profileName,
       phoneNumber: message?.from,
       userApiNumber: apiNumber,
-      whatsappUserTime: message?.timestamp,
+      whatsappUserTime: timestamp.toString(),
+      lastMessage: {
+        messageType: message?.type,
+        textMessage: message?.text?.body || null,
+        messageTimestamp: timestamp.toString(),
+      },
     });
 
     const userApi = await Api.findOne({ phoneNumber: contact.userApiNumber });
     if (userApi) {
       const userId = userApi.userId.toString();
-      await sendContacts(userId);
+      // await sendContacts(userId); socket emit edi
     }
   } else {
-    contact.whatsappUserTime = message.timestamp; // update field
+    const timestamp = new Date(parseInt(message?.timestamp) * 1000);
+    contact.whatsappUserTime = timestamp.toString(); // update field
+    contact.lastMessage = {
+      messageType: message?.type,
+      textMessage: message?.text?.body || null,
+      messageTimestamp: timestamp.toString(),
+    };
     const updatedContact = await contact.save(); // save the changes
 
     const userApi = await Api.findOne({
@@ -35,7 +47,7 @@ const contactSet = async (data) => {
     });
     if (userApi) {
       const userId = userApi.userId.toString();
-      await sendContacts(userId);
+      // await sendContacts(userId);
     }
   }
 };

@@ -6,19 +6,19 @@ const axios = require("axios").default;
 let io;
 const userObj = new Map();
 
-const sendContacts = async (userId) => {
-  const socketId = userObj.get(userId);
-  if (!socketId) return console.log("Socket ID not found for", userId);
+// const sendContacts = async (userId) => {
+//   const socketId = userObj.get(userId);
+//   if (!socketId) return console.log("Socket ID not found for", userId);
 
-  const userApi = await Api.findOne({ userId });
-  if (!userApi) console.log("User not found");
-  const phoneNumber = userApi.phoneNumber.replace(/\D/g, "");
-  const contacts = await Contact.find({
-    userApiNumber: phoneNumber,
-  }).sort({ whatsappUserTime: 1 });
+//   const userApi = await Api.findOne({ userId });
+//   if (!userApi) console.log("User not found");
+//   const phoneNumber = userApi.phoneNumber.replace(/\D/g, "");
+//   const contacts = await Contact.find({
+//     userApiNumber: phoneNumber,
+//   }).sort({ whatsappUserTime: -1 });
 
-  io.to(socketId).emit("contacts", contacts);
-};
+//   io.to(socketId).emit("contacts", contacts);
+// };
 
 const sendWebhooks = async (message, userId) => {
   // console.log("send webhook", message, userId);
@@ -35,7 +35,7 @@ const sendWebhooks = async (message, userId) => {
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ["http://192.168.1.5:5173"],
+      origin: ["http://192.168.1.5:5173", "http://192.168.1.38:5173"],
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     },
@@ -97,7 +97,7 @@ const initSocket = (server) => {
       `user connected with userId ${userId} and soket ID:${socket.id}`
     );
 
-    sendContacts(userId);
+    // sendContacts(userId);
     socket.on("sendMessage", sendMessage);
 
     socket.on("disconnect", () => disConnect(socket));
@@ -106,6 +106,6 @@ const initSocket = (server) => {
 
 module.exports = {
   initSocket,
-  sendContacts,
+  // sendContacts,
   sendWebhooks,
 };

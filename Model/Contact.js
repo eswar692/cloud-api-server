@@ -18,6 +18,34 @@ const contactSchema = new mongoose.Schema({
   whatsappUserTime: {
     type: Date,
   },
+  lastMessage: {
+    type: new mongoose.Schema(
+      {
+        messageType: {
+          type: String,
+          enum: ["text", "image", "video", "audio", "document"],
+        },
+        textMessage: {
+          type: String,
+          required: function () {
+            return this.messageType === "text";
+          },
+        },
+        messageTimestamp: {
+          type: Date,
+        },
+        messageStatus: {
+          type: String,
+          enum: ["pending", "sent", "delivered", "read"],
+        },
+        messageSeen: {
+          type: Boolean,
+          default: true,
+        },
+      },
+      { _id: false }
+    ),
+  },
 });
 
 module.exports = mongoose.model("Contact", contactSchema);
