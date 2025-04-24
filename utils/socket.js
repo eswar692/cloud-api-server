@@ -6,19 +6,24 @@ const axios = require("axios").default;
 let io;
 const userObj = new Map();
 
-const sendContacts = async ( data) => {
+const sendContacts = async (data) => {
   if (!data) return;
   const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
-  const displayName = data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
-  const apiNumber = data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
+  const displayName =
+    data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
+  const apiNumber =
+    data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
   if (!message || !apiNumber || !displayName) return;
-  
 
   const userApi = await Api.findOne({ phoneNumber: apiNumber });
   if (!userApi) console.log("User not found");
   const socketId = userObj.get(userApi.userId.toString());
-  if (!socketId) return console.log("Socket ID not found for", userApi.userId.toString());
-  const contact = await Contact.findOne({userApiNumber: userApi.phoneNumber, phoneNumber: message.from});
+  if (!socketId)
+    return console.log("Socket ID not found for", userApi.userId.toString());
+  const contact = await Contact.findOne({
+    userApiNumber: userApi.phoneNumber,
+    phoneNumber: message.from,
+  });
   const tempContact = {
     apiNumber: userApi.phoneNumber,
     phoneNumber: message.from,
@@ -29,11 +34,9 @@ const sendContacts = async ( data) => {
       textMessage: message?.text?.body || null,
       messageTimestamp: new Date(parseInt(message?.timestamp) * 1000),
       messageSeen: true,
-      messageCount:contact?.lastMessage.messageCount + 1,
-    }
-  }
-
-  
+      messageCount: contact?.lastMessage.messageCount + 1,
+    },
+  };
 
   io.to(socketId).emit("receiveContacts", tempContact);
 };
@@ -53,7 +56,7 @@ const sendWebhooks = async (message, userId) => {
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ["http://192.168.1.5:5173", "http://192.168.1.38:5173"],
+      origin: ["http://192.168.1.5:5173", "http://172.20.10.2:5173"],
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     },
@@ -97,20 +100,22 @@ const initSocket = (server) => {
     );
     if (data.status === 200) {
       console.log("send mesage successfully");
-      const contact = await Contact.findOneAndUpdate({userApiNumber: api.phoneNumber, phoneNumber: message.receiver},
-        {$set:{
+      const contact = await Contact.findOneAndUpdate(
+        { userApiNumber: api.phoneNumber, phoneNumber: message.receiver },
+        {
+          $set: {
             whatsappUserTime: message.timestamp,
-            lastMessage:{
-              messageType:message.type,
-              textMessage:message?.textMessage,
+            lastMessage: {
+              messageType: message.type,
+              textMessage: message?.textMessage,
               messageTimestamp: message?.timestamp,
               messageSeen: false,
               messageCount: 0,
-            }
-          }
-      }, 
-      {new: true}
-   );
+            },
+          },
+        },
+        { new: true }
+      );
     }
     message.messageId = data.messages[0].id;
     const messageSave = await Webhook.create(message);
@@ -138,6 +143,6 @@ const initSocket = (server) => {
 
 module.exports = {
   initSocket,
-   sendContacts,
+  sendContacts,
   sendWebhooks,
 };
