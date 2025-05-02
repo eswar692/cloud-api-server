@@ -54,9 +54,19 @@ const sendWebhooks = async (message, userId) => {
 };
 
 const initSocket = (server) => {
+  allowedOrigin = [];
   io = new Server(server, {
     cors: {
-      origin: ["http://192.168.1.5:5173", "http://192.168.1.38:5173"],
+      origin: function (origin, callBack) {
+        if (!origin) {
+          return callBack(null, true);
+        }
+        if (allowedOrigin.includes(origin)) {
+          return callBack(null, true);
+        } else {
+          return callBack(new Error("Not Allowed this Origin", false));
+        }
+      },
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     },
