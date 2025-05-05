@@ -16,7 +16,7 @@ const textMessage = async (data) => {
     textMessage: message?.text?.body,
     imageMessage: message?.image?.url,
     messageId: message?.id,
-    timestamp: new Date(),
+    timestamp: new Date(message?.timestamp).getTime(),
   };
   const webhook = await Webhook.create(messageData);
   return webhook;

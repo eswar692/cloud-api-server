@@ -25,8 +25,8 @@ const messageCount = async (data) => {
       return;
     }
 
-    const lastTimestamp = parseInt(oldMessage[0]?.timestamp) * 1000; // in ms
-    const currentTimestamp = parseInt(message?.timestamp) * 1000; // in ms
+    const lastTimestamp = parseInt(oldMessage[0].timestamp) * 1000;
+    const currentTimestamp = message?.timestamp * 1000;
 
     const timeDiff = currentTimestamp - lastTimestamp;
 
