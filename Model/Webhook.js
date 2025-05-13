@@ -55,14 +55,14 @@ const WebhookSchema = new mongoose.Schema({
   },
 
   timestamp: {
-    type: Date,
+    type: Number,
   },
   tempId: {
     type: String,
   },
   status: {
     type: String,
-    enum: ["pending", "sent","delivered", "read", "failed"],
+    enum: ["pending", "sent", "delivered", "read", "failed"],
   },
 });
 

@@ -175,7 +175,12 @@ const login = async (req, res) => {
     });
     return res
       .status(201)
-      .json({ success: true, message: "User logged in successfully", user });
+      .json({
+        success: true,
+        message: "User logged in successfully",
+        user,
+        token,
+      });
   } catch (error) {
     console.error("Error in login:", error);
     return res.status(501).json({ success: false, message: "Server error" });

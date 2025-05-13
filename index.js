@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 //app.use(cors());
 
-const allowedOrigin = ["http://192.168.97.183:5173"];
+const allowedOrigin = ["http://192.168.142.183:5173"];
 
 app.use(
   cors({
