@@ -1,0 +1,57 @@
+const mongoose = require("mongoose");
+
+
+const paymentSchema = new mongoose.Schema({
+    userId: {
+        type: String,
+    },
+    plan: {
+        type: String,
+        enum: ["free-Plan","basic-Plan","standard-Plan","business-Plan"],
+    },
+    amount: {
+        type: Number,
+        enum: [0, 600, 1100,2200],
+    },
+    createdAt: {
+        type: Number
+    },
+    endPlanDate: {
+        type: Number
+    },
+    messageLimit: {
+        type: Number
+    },
+    prepaidOneMonth:{
+        type: new mongoose.Schema({
+            plan: {
+                type: String,
+                enum: ["basic Plan","Standard Plan","business Plan"],
+            },
+            amount: {
+                type: Number,
+                enum: [600, 1100,2200],
+            },
+            createdAt: {
+                type: Number,
+                default: function () {
+                  return (this.endPlanDate + 1);
+                }
+              }
+              ,
+            endPlanDate: {
+                type: Number
+            },
+            messageLimit: {
+                type: Number
+            },
+            
+        },
+        { _id: false }
+        )
+    }
+    
+});
+
+const Payment = mongoose.model("Payment", paymentSchema);
+module.exports = Payment

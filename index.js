@@ -3,9 +3,11 @@ const app = express();
 app.use(express.json());
 const cors = require("cors");
 require("dotenv").config();
-//app.use(cors());
 
-const allowedOrigin = ["http://192.168.142.183:5173"];
+//app.use(cors());
+const allowedOrigin = ["http://192.168.1.5:5173"];
+
+
 
 app.use(
   cors({
@@ -37,6 +39,7 @@ const fileRoute = require("./routes/userSideFileROute");
 const { initSocket } = require("./utils/socket");
 const contactRoute = require("./routes/contactRoutes");
 const message = require("./routes/messageRoutes");
+const paymentRouter = require("./routes/paymentRoutes");
 
 app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
@@ -44,6 +47,7 @@ app.use("/user", userRoute);
 app.use("/contact", contactRoute);
 app.use("/file", fileRoute);
 app.use("/message", message);
+app.use("/payment", paymentRouter);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,
