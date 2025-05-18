@@ -34,9 +34,7 @@ const apiSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  orderId: { 
-    type: String
-  },
+ 
 });
 
 // 💡 Create index at schema level

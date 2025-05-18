@@ -38,8 +38,8 @@ const paymentOrder = async (req, res) => {
         plan: "free-Plan",
         amount: 0,
         createdAt: Date.now(),
-        endPlanDate: undefined,
         messageLimit: 100,
+
       });
       return res
         .status(201)
@@ -55,7 +55,27 @@ const paymentOrder = async (req, res) => {
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
-      console.log(order);
+      if(!order){
+        return res
+        .status(401)
+        .json({ success: false, message: "Order not created" });
+      }
+      const payment = await Payment.findOne({ userId });
+
+      if (!payment) {
+        const payment = await Payment.create({
+          userId: user.userId,
+          paymentDetails: {
+            order_id: order?.id,
+            status: "pending",
+          }
+        });
+      }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
+      
+      
       return res
         .status(201)
         .json({ success: true, message: "Basic Plan Order Created", order });
@@ -70,7 +90,25 @@ const paymentOrder = async (req, res) => {
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
-      console.log(order);
+      if(!order){
+        return res
+        .status(401)
+        .json({ success: false, message: "Order not created" });
+      }
+      const payment = await Payment.findOne({ userId });
+
+      if (!payment) {
+        const payment = await Payment.create({
+          userId: user.userId,
+          paymentDetails: {
+            order_id: order?.id,
+            status: "pending",
+          }
+        });
+      }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
       return res
         .status(201)
         .json({ success: true, message: "standard Plan order created", order });
@@ -85,7 +123,20 @@ const paymentOrder = async (req, res) => {
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
-      console.log(order);
+      const payment = await Payment.findOne({ userId });
+
+      if (!payment) {
+        const payment = await Payment.create({
+          userId: user.userId,
+          paymentDetails: {
+            order_id: order?.id,
+            status: "pending",
+          }
+        });
+      }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
       return res
         .status(201)
         .json({ success: true, message: "business Plan order created", order });
@@ -98,6 +149,22 @@ const paymentOrder = async (req, res) => {
   }
 };
 
+
+
+const allDelete = async (req, res) => {
+  try {
+    await Payment.deleteMany();
+    return res
+      .status(201)
+      .json({ success: true, message: "All payments deleted successfully" });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(501).json({ success: false, message: "Server error" });
+  }
+}
+  
+
 module.exports = {
   paymentOrder,
+  allDelete
 };

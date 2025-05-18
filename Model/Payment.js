@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const paymentSchema = new mongoose.Schema({
     userId: {
         type: String,
+        unique: true,
+        
     },
     plan: {
         type: String,
@@ -14,13 +16,13 @@ const paymentSchema = new mongoose.Schema({
         enum: [0, 600, 1100,2200],
     },
     createdAt: {
-        type: Number
+        type: Number,
     },
     endPlanDate: {
-        type: Number
+        type: Number,
     },
     messageLimit: {
-        type: Number
+        type: Number,
     },
     prepaidOneMonth:{
         type: new mongoose.Schema({
@@ -40,15 +42,35 @@ const paymentSchema = new mongoose.Schema({
               }
               ,
             endPlanDate: {
-                type: Number
+                type: Number,
             },
             messageLimit: {
-                type: Number
+                type: Number,
             },
             
         },
         { _id: false }
         )
+    },
+    paymentDetails:{
+        type: new mongoose.Schema({
+            order_id: {
+                type: String,
+            },
+            payment_id: {
+                type: String,
+            },
+            signature: {
+                type: String,
+            },
+            status: {
+                type: String,
+                enum: ["pending","success","failed"],
+            }
+        },
+        { _id: false }
+        )
+
     }
     
 });
