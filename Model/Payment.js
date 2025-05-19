@@ -66,6 +66,12 @@ const paymentSchema = new mongoose.Schema({
           type: String,
           enum: ["pending", "success", "failed"],
         },
+        invoice_id: {
+          type: String,
+        },
+        invoice_url: {
+          type: String,
+        },
       },
       { _id: false }
     ),

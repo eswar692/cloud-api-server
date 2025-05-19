@@ -49,7 +49,7 @@ const paymentOrder = async (req, res) => {
     // basic-plan
     if (plan === "basic-Plan") {
       const option = {
-        amount: 600 * 100,
+        amount: 10 * 100,
         currency: country,
         receipt: `req${Date.now()}`,
       };
@@ -161,62 +161,91 @@ const verifyPayment = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature, plan } =
     req.body;
   const userId = req.userId;
-  const user = await Api.findOne({ userId });
-  if (!user) {
-    return res.status(401).json({ success: false, message: "User not found" });
-  }
-  const payment = await Payment.findOne({ userId });
-  if (!payment) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Payment not found" });
-  }
+
   try {
+    const user = await Api.findOne({ userId });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const payment = await Payment.findOne({ userId });
+    if (!payment) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Payment not found" });
+    }
+
     const rzrSecreteKey = process.env.key_secret;
     const dataBody = razorpay_order_id + "|" + razorpay_payment_id;
     const signatureVerify = crypto
       .createHmac("sha256", rzrSecreteKey)
-      .update(dataBody);
+      .update(dataBody.toString())
+      .digest("hex"); 
 
     if (signatureVerify === razorpay_signature) {
-      const timeInSeconds = (Date.now()/1000)
-        (payment.plan = plan),
-        (payment.amount =
-          plan === "basic-Plan"
-            ? 10
-            : plan === "standard-Plan"
-            ? 1100
-            : plan === "business-Plan" && 2200);
-        payment.createdAt = timeInSeconds
-        payment.endPlanDate = (timeInSeconds + (30 * 24 * 60 * 60) )
-        payment.messageLimit =
-          plan === "basic-Plan"
-            ? 100
-            : plan === "standard-Plan"
-            ? 500
-            : plan === "business-Plan" && "unlimited";
-        payment.paymentDetails={
-          payment_id: razorpay_payment_id,
-          signature: razorpay_signature,
-          status: "success"
-        }
-        await payment.save()
-        return res
-        .status(201)
-        .json({ success: true, message: "Payment verified successfully" });
+      const timeInSeconds = Math.floor(Date.now() / 1000);
 
-    }else{
-      payment.paymentDetails.status = "failed"
-      await payment.save()
-      return res.status(401).json({success:false,message:"payment failed"})
+      payment.plan = plan;
+      payment.amount =
+        plan === "basic-Plan"
+          ? 10
+          : plan === "standard-Plan"
+          ? 1100
+          : plan === "business-Plan"
+          ? 2200
+          : 0;
+
+      payment.createdAt = timeInSeconds;
+      payment.endPlanDate = timeInSeconds + 30 * 24 * 60 * 60;
+      payment.messageLimit =
+        plan === "basic-Plan"
+          ? 100
+          : plan === "standard-Plan"
+          ? 500
+          : plan === "business-Plan"
+          ? "unlimited"
+          : 0;
+
+      payment.paymentDetails = {
+        payment_id: razorpay_payment_id,
+        signature: razorpay_signature,
+        status: "success",
+      };
+
+      const paymentInfo = await razorpay.payments.fetch(razorpay_payment_id);
+
+      if (paymentInfo.invoice_id) {
+        const invoice = await razorpay.invoices.fetch(paymentInfo.invoice_id);
+        payment.paymentDetails.invoice_id = invoice.id;
+        payment.paymentDetails.invoice_url = invoice.short_url;
+      } else {
+        console.log("No invoice associated");
+      }
+
+      await payment.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Payment verified successfully",
+        invoice: payment.paymentDetails.invoice_url || null,
+      });
+    } else {
+      payment.paymentDetails.status = "failed";
+      await payment.save();
+      return res
+        .status(501)
+        .json({ success: false, message: "Payment verification failed" });
     }
-
   } catch (error) {
-   console.log(error)
-   return res.status(501).json({success:false, message:"internal server error"})
+    console.log(error);
+    return res
+      .status(501)
+      .json({ success: false, message: "Internal server error" });
   }
-
 };
+
 
 const allDelete = async (req, res) => {
   try {
@@ -233,4 +262,5 @@ const allDelete = async (req, res) => {
 module.exports = {
   paymentOrder,
   allDelete,
+  verifyPayment,
 };
