@@ -3,6 +3,7 @@ const Payment = require("../Model/Payment");
 const axios = require("axios");
 const Razorpay = require("razorpay");
 require("dotenv").config();
+const crypto = require("crypto");
 
 //razorpay
 const razorpay = new Razorpay({
@@ -37,9 +38,8 @@ const paymentOrder = async (req, res) => {
         userId: user.userId,
         plan: "free-Plan",
         amount: 0,
-        createdAt: Date.now(),
+        createdAt: Date.now()/1000,
         messageLimit: 100,
-
       });
       return res
         .status(201)
@@ -55,27 +55,29 @@ const paymentOrder = async (req, res) => {
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
-      if(!order){
+      if (!order) {
         return res
-        .status(401)
-        .json({ success: false, message: "Order not created" });
+          .status(401)
+          .json({ success: false, message: "Order not created" });
       }
-      const payment = await Payment.findOne({ userId });
+      let payment = await Payment.findOne({ userId });
 
       if (!payment) {
-        const payment = await Payment.create({
+        const paymentCreate = await Payment.create({
           userId: user.userId,
           paymentDetails: {
             order_id: order?.id,
             status: "pending",
-          }
+          },
         });
       }
-        payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
-        const updatePlanReq = await payment.save();
-      
-      
+      if (!payment.paymentDetails) {
+        payment.paymentDetails = {};
+      }
+      payment.paymentDetails.order_id = order?.id;
+      payment.paymentDetails.status = "pending";
+      const updatePlanReq = await payment.save();
+
       return res
         .status(201)
         .json({ success: true, message: "Basic Plan Order Created", order });
@@ -90,10 +92,10 @@ const paymentOrder = async (req, res) => {
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
-      if(!order){
+      if (!order) {
         return res
-        .status(401)
-        .json({ success: false, message: "Order not created" });
+          .status(401)
+          .json({ success: false, message: "Order not created" });
       }
       const payment = await Payment.findOne({ userId });
 
@@ -103,12 +105,15 @@ const paymentOrder = async (req, res) => {
           paymentDetails: {
             order_id: order?.id,
             status: "pending",
-          }
+          },
         });
       }
-        payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
-        const updatePlanReq = await payment.save();
+      if (!payment.paymentDetails) {
+        payment.paymentDetails = {};
+      }
+      payment.paymentDetails.order_id = order?.id;
+      payment.paymentDetails.status = "pending";
+      const updatePlanReq = await payment.save();
       return res
         .status(201)
         .json({ success: true, message: "standard Plan order created", order });
@@ -131,12 +136,15 @@ const paymentOrder = async (req, res) => {
           paymentDetails: {
             order_id: order?.id,
             status: "pending",
-          }
+          },
         });
       }
-        payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
-        const updatePlanReq = await payment.save();
+      if (!payment.paymentDetails) {
+        payment.paymentDetails = {};
+      }
+      payment.paymentDetails.order_id = order?.id;
+      payment.paymentDetails.status = "pending";
+      const updatePlanReq = await payment.save();
       return res
         .status(201)
         .json({ success: true, message: "business Plan order created", order });
@@ -149,7 +157,54 @@ const paymentOrder = async (req, res) => {
   }
 };
 
+const verifyPayment = async (req, res) => {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature, plan } =
+    req.body;
+  const userId = req.userId;
+  const user = await Api.findOne({ userId });
+  if (!user) {
+    return res.status(401).json({ success: false, message: "User not found" });
+  }
+  const payment = await Payment.findOne({ userId });
+  if (!payment) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Payment not found" });
+  }
+  try {
+    const rzrSecreteKey = process.env.key_secret;
+    const dataBody = razorpay_order_id + "|" + razorpay_payment_id;
+    const signatureVerify = crypto
+      .createHmac("sha256", rzrSecreteKey)
+      .update(dataBody);
 
+    if (signatureVerify === razorpay_signature) {
+      const timeInSeconds = (Date.now()/1000)
+        (payment.plan = plan),
+        (payment.amount =
+          plan === "basic-Plan"
+            ? 10
+            : plan === "standard-Plan"
+            ? 1100
+            : plan === "business-Plan" && 2200);
+        payment.createdAt = timeInSeconds
+        payment.endPlanDate = (timeInSeconds + (30 * 24 * 60 * 60) )
+        return res
+        .status(201)
+        .json({ success: true, message: "Payment verified successfully" });
+
+    }else{
+      payment.paymentDetails.status = "failed"
+      await payment.save()
+      return res.status(401).json({success:false,message:"payment failed"})
+    }
+
+  } catch (error) {
+   console.log(error)
+   return res.status(501).json({success:false, message:"internal server error"})
+  }
+
+};
 
 const allDelete = async (req, res) => {
   try {
@@ -161,10 +216,9 @@ const allDelete = async (req, res) => {
     console.log(error.message);
     return res.status(501).json({ success: false, message: "Server error" });
   }
-}
-  
+};
 
 module.exports = {
   paymentOrder,
-  allDelete
+  allDelete,
 };
