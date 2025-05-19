@@ -189,6 +189,18 @@ const verifyPayment = async (req, res) => {
             : plan === "business-Plan" && 2200);
         payment.createdAt = timeInSeconds
         payment.endPlanDate = (timeInSeconds + (30 * 24 * 60 * 60) )
+        payment.messageLimit =
+          plan === "basic-Plan"
+            ? 100
+            : plan === "standard-Plan"
+            ? 500
+            : plan === "business-Plan" && "unlimited";
+        payment.paymentDetails={
+          payment_id: razorpay_payment_id,
+          signature: razorpay_signature,
+          status: "success"
+        }
+        await payment.save()
         return res
         .status(201)
         .json({ success: true, message: "Payment verified successfully" });

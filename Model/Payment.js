@@ -20,8 +20,8 @@ const paymentSchema = new mongoose.Schema({
     type: Number,
   },
   messageLimit: {
-    type: Number,
-    enum: [100, 500, 1000],
+    type: mongoose.Schema.Types.Mixed,
+    enum: [100, 500, 1000, "unlimited"],
   },
   prepaidOneMonth: {
     type: new mongoose.Schema(
