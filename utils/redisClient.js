@@ -3,7 +3,10 @@ require("dotenv").config();
 
 const connectRedis = async () => {
   try {
-    const client = new Redis(process.env.redis_url); // ioredis uses URL directly
+    const client = new Redis({
+      url: process.env.redis_url,
+      tls: {},
+    }); // ioredis uses URL directly
 
     client.on("connect", () => {
       console.log("✅ Redis Connected Successfully!");
