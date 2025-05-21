@@ -1,22 +1,20 @@
-const redis = require("redis");
+const Redis = require("ioredis");
 require("dotenv").config();
 
 const connectRedis = async () => {
   try {
-    const client = redis.createClient({
-      url: process.env.redis_url, // Add Redis URL explicitly
-      socket: { reconnectStrategy: 3 }, // Auto-reconnect
+    const client = new Redis(process.env.redis_url); // ioredis uses URL directly
+
+    client.on("connect", () => {
+      console.log("✅ Redis Connected Successfully!");
     });
 
     client.on("error", (err) => {
       console.error("❌ Redis Error:", err);
     });
 
-    client.on("connect", () => {
-      console.log("✅ Redis Connected Successfully!");
-    });
-
-    await client.connect(); // Await connection
+    // Optional: Wait until ready
+    await new Promise((resolve) => client.once("ready", resolve));
 
     return client;
   } catch (error) {

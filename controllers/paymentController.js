@@ -4,6 +4,7 @@ const axios = require("axios");
 const Razorpay = require("razorpay");
 require("dotenv").config();
 const crypto = require("crypto");
+const upgradeQueue = require("../job/queue");
 
 //razorpay
 const razorpay = new Razorpay({
@@ -38,7 +39,7 @@ const paymentOrder = async (req, res) => {
         userId: user.userId,
         plan: "free-Plan",
         amount: 0,
-        createdAt: Date.now()/1000,
+        createdAt: Date.now() / 1000,
         messageLimit: 100,
       });
       return res
@@ -182,7 +183,7 @@ const verifyPayment = async (req, res) => {
     const signatureVerify = crypto
       .createHmac("sha256", rzrSecreteKey)
       .update(dataBody.toString())
-      .digest("hex"); 
+      .digest("hex");
 
     if (signatureVerify === razorpay_signature) {
       const timeInSeconds = Math.floor(Date.now() / 1000);
@@ -225,6 +226,15 @@ const verifyPayment = async (req, res) => {
       }
 
       await payment.save();
+      await upgradeQueue.add(
+        "plan_upgrade",
+        {
+          userId: user._id,
+        },
+        {
+          delay: 1000 * 60,
+        }
+      );
 
       return res.status(201).json({
         success: true,
@@ -245,7 +255,6 @@ const verifyPayment = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
-
 
 const allDelete = async (req, res) => {
   try {

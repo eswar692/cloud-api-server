@@ -7,7 +7,13 @@ const paymentSchema = new mongoose.Schema({
   },
   plan: {
     type: String,
-    enum: ["free-Plan", "basic-Plan", "standard-Plan", "business-Plan"],
+    enum: [
+      "free-Plan",
+      "basic-Plan",
+      "standard-Plan",
+      "business-Plan",
+      "expired",
+    ],
   },
   amount: {
     type: Number,
@@ -64,7 +70,7 @@ const paymentSchema = new mongoose.Schema({
         },
         status: {
           type: String,
-          enum: ["pending", "success", "failed"],
+          enum: ["pending", "success", "failed", "expired"],
         },
         invoice_id: {
           type: String,
