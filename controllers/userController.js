@@ -1,5 +1,5 @@
 const User = require("../Model/User");
-const { sendOTP } = require("../utils/otpSend");
+const { sendOTP, mailOptions, generateOTP } = require("../utils/otpSend");
 const { connectRedis } = require("../utils/redisClient");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -21,7 +21,10 @@ const sendOtp = async (req, res) => {
         .status(401)
         .json({ success: false, message: "USer Already Exists please login" });
     }
-    const sendOtp = await sendOTP(email);
+
+    const otp = generateOTP();
+   const mailOptionsInstance = mailOptions({title:"Verify Your Email",email, message:{text:"Verify Your Email",main:null,sub:null}, otp});
+    const sendOtp = await sendOTP(email, mailOptionsInstance, otp);
     if (!sendOtp)
       return res
         .status(401)

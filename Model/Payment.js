@@ -5,6 +5,11 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  freePlanActive: {
+    type: String,
+    enum: ["completed", "active", "not-used"],
+    default: "not-used",
+  },
   plan: {
     type: String,
     enum: [
@@ -27,7 +32,7 @@ const paymentSchema = new mongoose.Schema({
   },
   messageLimit: {
     type: mongoose.Schema.Types.Mixed,
-    enum: [100, 500, 1000, "unlimited"],
+    enum: [0, 100, 500, 1000, "unlimited"],
   },
   prepaidOneMonth: {
     type: new mongoose.Schema(

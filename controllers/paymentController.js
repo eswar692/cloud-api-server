@@ -37,9 +37,11 @@ const paymentOrder = async (req, res) => {
     if (plan === "free-Plan") {
       const payment = await Payment.create({
         userId: user.userId,
+        freePlanActive:"active",
         plan: "free-Plan",
         amount: 0,
         createdAt: Date.now() / 1000,
+        endPlanDate: (Date.now() / 1000) + 60 * 60 * 60 * 24 * 30,
         messageLimit: 100,
       });
       return res
@@ -72,7 +74,7 @@ const paymentOrder = async (req, res) => {
           },
         });
       }
-      if (!payment.paymentDetails) {
+      if (!payment?.paymentDetails) {
         payment.paymentDetails = {};
       }
       payment.paymentDetails.order_id = order?.id;
@@ -261,20 +263,43 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-const allDelete = async (req, res) => {
+
+
+
+const getPayment = async (req, res) => {
+  const userId = req.userId;
   try {
-    await Payment.deleteMany();
-    return res
-      .status(201)
-      .json({ success: true, message: "All payments deleted successfully" });
+    const payment = await Payment.find({ userId });
+    if (!payment) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Payment not found" });
+    }
+    return res.status(200).json({ success: true, payment });
   } catch (error) {
-    console.log(error.message);
-    return res.status(501).json({ success: false, message: "Server error" });
+    console.log(error);
+    return res
+      .status(501)
+      .json({ success: false, message: "Internal server error" });
   }
-};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = {
   paymentOrder,
-  allDelete,
   verifyPayment,
+  getPayment
 };
