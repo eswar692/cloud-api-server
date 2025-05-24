@@ -4,7 +4,7 @@ const axios = require("axios");
 const Razorpay = require("razorpay");
 require("dotenv").config();
 const crypto = require("crypto");
-const upgradeQueue = require("../job/queue");
+const agenda = require("../job/agend");
 
 //razorpay
 const razorpay = new Razorpay({
@@ -199,7 +199,7 @@ const verifyPayment = async (req, res) => {
           : 0;
 
       payment.createdAt = timeInSeconds;
-      payment.endPlanDate = timeInSeconds + 30 * 24 * 60 * 60;
+      payment.endPlanDate = timeInSeconds + 60;
       payment.messageLimit =
         plan === "basic-Plan"
           ? 100
@@ -225,14 +225,19 @@ const verifyPayment = async (req, res) => {
         console.log("No invoice associated");
       }
 
-      await payment.save();
-      await upgradeQueue.add(
-        "plan_upgrade",
+      const updatePlan = await payment.save();
+      if (!updatePlan)
+        return res
+          .status(501)
+          .json({ success: false, message: "Plan not updated" });
+
+      //job sceduling
+
+      const job = await agenda.schedule(
+        new Date(payment.endPlanDate * 1000),
+        "plan-expire",
         {
-          userId: user._id,
-        },
-        {
-          delay: 1000 * 60,
+          userId: user.userId,
         }
       );
 

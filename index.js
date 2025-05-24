@@ -38,6 +38,8 @@ const { initSocket } = require("./utils/socket");
 const contactRoute = require("./routes/contactRoutes");
 const message = require("./routes/messageRoutes");
 const paymentRouter = require("./routes/paymentRoutes");
+const agendaDefine = require("./job/define");
+const agenda = require("./job/agend");
 
 app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
@@ -58,7 +60,19 @@ mongoose
   .then(() => console.log("Connected to DB!"))
   .catch((err) => console.log("DB Connection Error:", err));
 
-connectRedis();
+// connectRedis();
+agendaDefine(agenda);
+
+(async () => {
+  await agenda.start();
+  console.log("✅ Agenda started");
+
+  // Sample schedule
+  const newDate = new Date(1748035680 * 1000);
+  await agenda.schedule(newDate, "hi", {
+    message: "Hello from Agenda!",
+  });
+})();
 
 const PORT = process.env.PORT || 80;
 const server = app.listen(PORT, "0.0.0.0", () =>
