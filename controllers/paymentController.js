@@ -37,11 +37,11 @@ const paymentOrder = async (req, res) => {
     if (plan === "free-Plan") {
       const payment = await Payment.create({
         userId: user.userId,
-        freePlanActive:"active",
+        freePlanActive: "active",
         plan: "free-Plan",
         amount: 0,
         createdAt: Date.now() / 1000,
-        endPlanDate: (Date.now() / 1000) + 60 * 60 * 60 * 24 * 30,
+        endPlanDate: Date.now() / 1000 + 60 * 60 * 60 * 24 * 30,
         messageLimit: 100,
       });
       return res
@@ -263,13 +263,10 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-
-
-
 const getPayment = async (req, res) => {
   const userId = req.userId;
   try {
-    const payment = await Payment.find({ userId });
+    const payment = await Payment.findOne({ userId });
     if (!payment) {
       return res
         .status(401)
@@ -279,27 +276,13 @@ const getPayment = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res
-      .status(501)
+      .status(500) // 🔁 500 is better than 501
       .json({ success: false, message: "Internal server error" });
   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+};
 
 module.exports = {
   paymentOrder,
   verifyPayment,
-  getPayment
+  getPayment,
 };
