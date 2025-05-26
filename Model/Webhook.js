@@ -64,8 +64,17 @@ const WebhookSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "sent", "delivered", "read", "failed"],
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 WebhookSchema.index({ sender: 1, receiver: 1, timestamp: 1, messageId: 1 });
+// auto delete after 4 months
+WebhookSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 60 * 60 * 24 * 30 * 4 }
+);
 
 module.exports = mongoose.model("Webhook", WebhookSchema);

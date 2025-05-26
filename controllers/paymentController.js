@@ -40,8 +40,8 @@ const paymentOrder = async (req, res) => {
         freePlanActive: "active",
         plan: "free-Plan",
         amount: 0,
-        createdAt: Date.now() / 1000,
-        endPlanDate: Date.now() / 1000 + 60 * 60 * 60 * 24 * 30,
+        createdAt: Math.floor(Date.now() / 1000),
+        endPlanDate: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
         messageLimit: 100,
       });
       return res
@@ -52,7 +52,7 @@ const paymentOrder = async (req, res) => {
     // basic-plan
     if (plan === "basic-Plan") {
       const option = {
-        amount: 10 * 100,
+        amount: 500 * 100,
         currency: country,
         receipt: `req${Date.now()}`,
       };
@@ -73,13 +73,14 @@ const paymentOrder = async (req, res) => {
             status: "pending",
           },
         });
+      } else if (payment) {
+        if (!payment.paymentDetails) {
+          payment.paymentDetails = {};
+        }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
       }
-      if (!payment?.paymentDetails) {
-        payment.paymentDetails = {};
-      }
-      payment.paymentDetails.order_id = order?.id;
-      payment.paymentDetails.status = "pending";
-      const updatePlanReq = await payment.save();
 
       return res
         .status(201)
@@ -110,13 +111,14 @@ const paymentOrder = async (req, res) => {
             status: "pending",
           },
         });
+      } else if (pay) {
+        if (!payment.paymentDetails) {
+          payment.paymentDetails = {};
+        }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
       }
-      if (!payment.paymentDetails) {
-        payment.paymentDetails = {};
-      }
-      payment.paymentDetails.order_id = order?.id;
-      payment.paymentDetails.status = "pending";
-      const updatePlanReq = await payment.save();
       return res
         .status(201)
         .json({ success: true, message: "standard Plan order created", order });
@@ -141,13 +143,15 @@ const paymentOrder = async (req, res) => {
             status: "pending",
           },
         });
+      } else if (payment) {
+        if (!payment.paymentDetails) {
+          payment.paymentDetails = {};
+        }
+        payment.paymentDetails.order_id = order?.id;
+        payment.paymentDetails.status = "pending";
+        const updatePlanReq = await payment.save();
       }
-      if (!payment.paymentDetails) {
-        payment.paymentDetails = {};
-      }
-      payment.paymentDetails.order_id = order?.id;
-      payment.paymentDetails.status = "pending";
-      const updatePlanReq = await payment.save();
+
       return res
         .status(201)
         .json({ success: true, message: "business Plan order created", order });
