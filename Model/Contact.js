@@ -23,7 +23,6 @@ const contactSchema = new mongoose.Schema({
       {
         messageType: {
           type: String,
-          enum: ["text", "image", "video", "audio", "document"],
         },
         textMessage: {
           type: String,

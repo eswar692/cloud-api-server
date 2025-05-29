@@ -24,6 +24,7 @@ const sendContacts = async (data) => {
     userApiNumber: userApi.phoneNumber,
     phoneNumber: message.from,
   });
+  // edi instance update chestundi ante contact already exist and updated but instance ga socket tho  send chesi update chestam frontend lo after refresh the frontend will show the updated contact
   const tempContact = {
     apiNumber: userApi.phoneNumber,
     phoneNumber: message.from,
@@ -54,7 +55,7 @@ const sendWebhooks = async (message, userId) => {
 };
 
 const initSocket = (server) => {
-  const allowedOrigin = ["http://192.168.145.183:5173"];
+  const allowedOrigin = ["http://192.168.1.5:5173"];
   io = new Server(server, {
     cors: {
       origin: function (origin, callBack) {

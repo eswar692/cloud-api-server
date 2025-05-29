@@ -1,8 +1,8 @@
 const Api = require("../../../Model/Api");
 const Webhook = require("../../../Model/Webhook");
+const Payment = require("../../../Model/Payment");
 
 const messageCount = async (data) => {
-  console.log("messageCount function called ");
   try {
     const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
     const whatsappUserPhoneNumber = message?.from;
@@ -11,6 +11,8 @@ const messageCount = async (data) => {
     if (!message) return;
     const findUser = await Api.findOne({ phoneNumber: apiNumber });
     if (!findUser) return;
+    // first paymnent lo unna APi user ni find cheyali ante first payment catch ki userID kavali first API DB ni find cheste user ID vastundi
+    const payment = await Payment.findOne({ userId: findUser.userId });
     const userId = findUser.userId.toString();
     const oldMessage = await Webhook.find({
       sender: whatsappUserPhoneNumber,
@@ -21,6 +23,10 @@ const messageCount = async (data) => {
     if (oldMessage.length === 0) {
       console.log("No previous messages found, incrementing message count.");
       findUser.messageCount += 1;
+      if (payment) {
+        payment.messageCountTracker += 1;
+        await payment.save();
+      }
       await findUser.save();
       return;
     }
@@ -35,6 +41,10 @@ const messageCount = async (data) => {
     if (isOneDayGap) {
       console.log("One day gap detected, incrementing message count.");
       findUser.messageCount += 1;
+      if (payment) {
+        payment.messageCountTracker += 1;
+        await payment.save();
+      }
       await findUser.save();
     } else {
       return;

@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 //app.use(cors());
-const allowedOrigin = ["http://192.168.145.183:5173"];
+const allowedOrigin = ["http://192.168.1.5:5173"];
 
 app.use(
   cors({
@@ -40,6 +40,7 @@ const message = require("./routes/messageRoutes");
 const paymentRouter = require("./routes/paymentRoutes");
 const agendaDefine = require("./job/define");
 const agenda = require("./job/agend");
+const autoReplyRoute = require("./routes/autoReplyRoutes");
 
 app.use("/api", apiRoute);
 app.use("/webhook", webhookRoute);
@@ -48,6 +49,7 @@ app.use("/contact", contactRoute);
 app.use("/file", fileRoute);
 app.use("/message", message);
 app.use("/payment", paymentRouter);
+app.use("/auto-reply", autoReplyRoute);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,

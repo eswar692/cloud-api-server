@@ -3,19 +3,15 @@ const mongoose = require("mongoose");
 const WebhookSchema = new mongoose.Schema({
   sender: {
     type: String,
-    required: true,
   },
   receiver: {
     type: String,
-    required: true,
   },
   name: {
     type: String,
-    required: true,
   },
   type: {
     type: String,
-    required: true,
   },
   textMessage: {
     type: String,
@@ -68,6 +64,23 @@ const WebhookSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  autoReply:{
+    type: new mongoose.Schema({
+      messageId: {
+        type: String,
+      },
+      
+
+    }, { _id: false }),
+  },
+  context:{
+    type: new mongoose.Schema({
+      messageId: {
+        type: String,
+      },
+      
+    }, { _id: false }),
+  }
 });
 
 WebhookSchema.index({ sender: 1, receiver: 1, timestamp: 1, messageId: 1 });

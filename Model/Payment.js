@@ -87,6 +87,10 @@ const paymentSchema = new mongoose.Schema({
       { _id: false }
     ),
   },
+  messageCountTracker: {
+    type:Number,
+    default: 0,
+  }
 });
 
 const Payment = mongoose.model("Payment", paymentSchema);

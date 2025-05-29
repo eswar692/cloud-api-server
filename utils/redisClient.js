@@ -58,4 +58,9 @@ connectRedis
     console.error("❌ Redis Ping Failed:", err);
   });
 
+  //if error occurs, 
+  connectRedis.on("error", (err) => {
+    console.error("❌ Redis Error:", err);
+  });
+    
 module.exports = { connectRedis };

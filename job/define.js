@@ -25,6 +25,7 @@ const agendaDefine = (agenda) => {
         user.endPlanDate = user.prepaidOneMonth.endPlanDate;
         user.messageLimit = user.prepaidOneMonth.messageLimit;
         user.prepaidOneMonth = undefined;
+        user.messageCountTracker = 0;
         
         await user.save();
         console.log(`Prepaid plan applied for user: ${userId}`);
@@ -39,6 +40,7 @@ const agendaDefine = (agenda) => {
       user.messageLimit = 0;
       user.createdAt = 0;
       user.paymentDetails = undefined;
+      
       
       await user.save();
       const userDetails = await User.findById(userId);

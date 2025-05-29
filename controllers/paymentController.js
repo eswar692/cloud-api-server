@@ -111,7 +111,7 @@ const paymentOrder = async (req, res) => {
             status: "pending",
           },
         });
-      } else if (pay) {
+      } else if (payment) {
         if (!payment.paymentDetails) {
           payment.paymentDetails = {};
         }
@@ -230,6 +230,7 @@ const verifyPayment = async (req, res) => {
       } else {
         console.log("No invoice associated");
       }
+      payment.messageCountTracker = 0;
 
       const updatePlan = await payment.save();
       if (!updatePlan)
