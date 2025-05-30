@@ -1,5 +1,5 @@
 const AutoReply = require('../Model/autoreplay');
-const cloudinary = require('../utils/cloudinary').v2;
+const cloudinary = require('cloudinary').v2;
 
 
 
@@ -105,6 +105,7 @@ const updateAutoReply = async (req, res) => {
 // auto reply lo image cloud lo store in cloudinary
 const uploadImageToCloudinary = async (req, res) => {
     const userId = req.userId;
+    console.log(req.file, )
 
     try {
         // Check if file exists
