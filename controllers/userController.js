@@ -212,6 +212,41 @@ const getUser = async (req, res) => {
   }
 };
 
+// logout account api
+const logout = async (req, res) => {
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: "User ID is required",
+    });
+  }
+
+  try {
+    // Clear the JWT cookie by setting it to an empty string with minimal expiration
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: process.env.NODE_ENV === "production", // only secure in production
+      maxAge: 1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
+
+  } catch (error) {
+    console.error("Error in logout:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
 //development time lo
 const allAccountsDelete = async (req, res) => {
   try {
@@ -232,4 +267,5 @@ module.exports = {
   allAccountsDelete,
   login,
   getUser,
+  logout
 };

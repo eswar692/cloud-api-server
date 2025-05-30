@@ -14,6 +14,9 @@ const autoReplySchema = new mongoose.Schema({
         url: {
             type: String,
         },
+        publicId:{
+            type: String,
+        }
     },
     {
       _id: false,

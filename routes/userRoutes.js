@@ -25,4 +25,8 @@ router.post("/login", userController.login);
 // Route to handle getting user details
 router.get("/get-user", verifyToken, userController.getUser);
 
+// Route to handle user logout
+router.post("/logout", verifyToken, userController.logout);
+
+
 module.exports = router;
