@@ -3,6 +3,8 @@ const Webhook = require('../../../Model/Webhook');
 const AutoReply = require('../../../Model/autoreplay'); 
 const axios = require('axios');
 const { sendWebhooks } = require('../../socket');
+const { textMessage } = require('./textWebhook');
+const { getFileWebhook } = require('./fileWebhook');
 
 
 
@@ -25,6 +27,8 @@ const autoReplySend = async(data) => {
         const findUser = await Api.findOne({ phoneNumber: apiNumber });
         if (!findUser) return false;
     // Check if the user has auto-reply enabled
+
+    
 
         const autoReply = await AutoReply.findOne({ userId: findUser.userId });
     if (!autoReply || !autoReply.isActive) return false ;
@@ -104,7 +108,20 @@ const autoReplySend = async(data) => {
         if (timeDifference < (12 * 60 * 60 * 1000))   return false;
 
     }
-    // Prepare the payload for the auto-reply message
+    // store Data in DB in webhook 
+     switch (message?.type) {
+          case "text":
+             await textMessage(data);
+            break;
+          case "image":
+          case "video":
+          case "audio":
+          case "document":
+             await getFileWebhook(data, findUser.accessToken);
+            break;
+          default:
+            console.log("Unknown message type:", message?.type);
+        }
 
     // this helper function  4 parameters 1. userApiData, 2. autoReply, 3. message, 4. profileName
     console.log("Sending auto-reply...");

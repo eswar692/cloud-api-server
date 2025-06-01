@@ -80,7 +80,22 @@ const WebhookSchema = new mongoose.Schema({
       },
       
     }, { _id: false }),
-  }
+  },
+  referral : new mongoose.Schema({
+    type: {
+      type: String,
+      enum: ['ad',"post"]
+    },
+    url: {
+      type: String,
+    },
+    media_type: {
+      type: String,
+      enum: ['image', 'video'],
+    },
+  })
+
+  
 });
 
 WebhookSchema.index({ sender: 1, receiver: 1, timestamp: 1, messageId: 1 });

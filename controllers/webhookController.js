@@ -76,12 +76,12 @@ getWebhooks = async (req, res) => {
 
     switch (message?.type) {
       case "text":
-        webhook = await textMessage(data);
+         await textMessage(data);
         break;
       case "image":
       case "video":
       case "audio":
-      case "docs":
+      case "document":
         webhook = await getFileWebhook(data, userApi.accessToken);
         break;
       default:
@@ -103,10 +103,10 @@ getWebhooks = async (req, res) => {
     //   webhook = await getFileWebhook(data, userApi.accessToken);
     // }
 
-    if (userApi || webhook) {
-      const userId = userApi.userId.toString();
-      await sendWebhooks(webhook, userId);
-    }
+    // if (userApi || webhook) {
+    //   const userId = userApi.userId.toString();
+    //   await sendWebhooks(webhook, userId);
+    // }
 
     await messageStatus(data);
 

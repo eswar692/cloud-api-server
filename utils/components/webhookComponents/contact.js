@@ -37,6 +37,7 @@ const contactSet = async (data) => {
     const timestamp = new Date(parseInt(message?.timestamp) * 1000);
     contact.whatsappUserTime = timestamp.toString(); // update field
     contact.lastMessage = {
+      displayName: profileName,
       messageType: message?.type,
       textMessage: message?.text?.body || null,
       messageTimestamp: timestamp,

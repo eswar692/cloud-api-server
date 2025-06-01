@@ -6,13 +6,19 @@ const fs = require("fs");
 const path = require("path");
 const cloudinary = require("cloudinary").v2;
 
+
 const getFileWebhook = async (data, accessToken) => {
+  // Check if data is present and extract message, whatsappUserPhoneNumber, and apiNumber
   const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
   const apiNumber =
     data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
   const profileName =
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
 
+  const userApi = await Api.findOne({ phoneNumber: apiNumber });
+  if (!userApi) return console.log("User not found");
+
+  // first file send cheste webhook dwara ,media ID get chesi api call chesi next file ni cloudinary lo store chesi url mni store in DB
   const mediaId =
     message?.image?.id ||
     message?.video?.id ||
@@ -20,9 +26,7 @@ const getFileWebhook = async (data, accessToken) => {
     message?.audio?.id;
 
   if (!data) return console.log("user not found");
-  console.log("stage1");
   const fileUrl = await getFIleInWhatsapp(mediaId, accessToken);
-  console.log("stage2");
 
   if (fileUrl) {
     const messageData = {
@@ -42,9 +46,13 @@ const getFileWebhook = async (data, accessToken) => {
     console.log("stage3");
 
     const webhook = await Webhook.create(messageData);
-    return webhook;
+    await sendWebhooks(webhook, userApi.userId.toString());
   }
 };
+
+
+
+
 
 async function getFIleInWhatsapp(mediaId, accessToken) {
   // 1. Get media URL
