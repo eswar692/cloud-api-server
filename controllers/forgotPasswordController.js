@@ -63,7 +63,7 @@ const otpVerifyAndUpdatePassword = async (req, res) => {
       });
   }
   try {
-    const user = await User.findById({ email });
+    const user = await User.findOne({ email });
     //find user by userId
     if (!user) {
       return res

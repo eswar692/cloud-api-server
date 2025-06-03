@@ -4,7 +4,7 @@ const {
   otpVerifyAndUpdatePassword
 } = require('../controllers/forgotPasswordController');
 
-router.post('send-otp', sendOtpController);
-router.post('otp-verify-password-update', otpVerifyAndUpdatePassword);
+router.post('/send-otp', sendOtpController);
+router.post('/otp-verify-password-update', otpVerifyAndUpdatePassword);
 
 module.exports = router;

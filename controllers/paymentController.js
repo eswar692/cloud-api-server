@@ -52,7 +52,7 @@ const paymentOrder = async (req, res) => {
     // basic-plan
     if (plan === "basic-Plan") {
       const option = {
-        amount: 500 * 100,
+        amount:  1416* 100,  //1416 rupees with tax ammount
         currency: country,
         receipt: `req${Date.now()}`,
       };
@@ -63,7 +63,7 @@ const paymentOrder = async (req, res) => {
           .status(401)
           .json({ success: false, message: "Order not created" });
       }
-      let payment = await Payment.findOne({ userId });
+      let payment = await Payment.findOne({ userId });                 
 
       if (!payment) {
         const paymentCreate = await Payment.create({
@@ -90,7 +90,7 @@ const paymentOrder = async (req, res) => {
     // standard-plan
     if (plan === "standard-Plan") {
       const option = {
-        amount: 1100 * 100,
+        amount: 2360 * 100, //2360 rupees with tax ammount
         currency: country,
         receipt: `req${Date.now()}`,
       };
@@ -124,10 +124,10 @@ const paymentOrder = async (req, res) => {
         .json({ success: true, message: "standard Plan order created", order });
     }
 
-    // standard-plan
+    // Business-Plan
     if (plan === "business-Plan") {
       const option = {
-        amount: 2200 * 100,
+        amount: 3540 * 100, //3540 rupees with tax ammount atual ammout 3000
         currency: country,
         receipt: `req${Date.now()}`,
       };
@@ -196,21 +196,16 @@ const verifyPayment = async (req, res) => {
 
       payment.plan = plan;
       payment.amount =
-        plan === "basic-Plan"
-          ? 10
-          : plan === "standard-Plan"
-          ? 1100
-          : plan === "business-Plan"
-          ? 2200
-          : 0;
+        plan === "basic-Plan" ? 1199 : (plan==="standard-Plan"?1999 :(plan==="business-Plan"?2999:0));
+          
 
       payment.createdAt = timeInSeconds;
-      payment.endPlanDate = timeInSeconds + 60;
+      payment.endPlanDate = timeInSeconds + (30 * 24 * 60 * 60);
       payment.messageLimit =
         plan === "basic-Plan"
-          ? 100
+          ? 7000
           : plan === "standard-Plan"
-          ? 500
+          ? 10000
           : plan === "business-Plan"
           ? "unlimited"
           : 0;
@@ -239,8 +234,16 @@ const verifyPayment = async (req, res) => {
           .json({ success: false, message: "Plan not updated" });
 
       //job sceduling
+      const PlanEndAlert = await agenda.schedule(
+        new Date((payment.endPlanDate - 2 * 24 * 60 * 60) * 1000),
+        "plan-alert", 
+        {
+          userId: user.userId,
+        }
+      );
 
-      const job = await agenda.schedule(
+      // expire Automatics task function
+      const ExpirePlan = await agenda.schedule(
         new Date(payment.endPlanDate * 1000),
         "plan-expire",
         {

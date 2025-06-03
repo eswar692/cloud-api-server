@@ -5,7 +5,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 //app.use(cors());
-const allowedOrigin = ['http://192.168.216.183:5173'];
+const allowedOrigin = ["http://192.168.1.5:5173"];
 
 app.use(
   cors({
@@ -70,8 +70,10 @@ mongoose
 
 // agenda
 (async function () {
+  await agendaDefine(agenda);
   await agenda.start();
   console.log('✅ Agenda is running...');
+
 })();
 
 const PORT = process.env.PORT || 80;
