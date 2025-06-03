@@ -39,28 +39,28 @@
 
 // module.exports = { connectRedis, disconnectRedis };
 
-const Redis = require("ioredis");
+const Redis = require('ioredis');
 
 const connectRedis = new Redis(process.env.redis_url, {
   tls: {
     // Required for Upstash Redis
-    rejectUnauthorized: false,
-  },
+    rejectUnauthorized: false
+  }
 });
 
 // Test connection
 connectRedis
   .ping()
   .then((response) => {
-    console.log("✅ Redis Response:", response);
+    console.log('✅ Redis Response:', response);
   })
   .catch((err) => {
-    console.error("❌ Redis Ping Failed:", err);
+    console.error('❌ Redis Ping Failed:', err);
   });
 
-  //if error occurs, 
-  connectRedis.on("error", (err) => {
-    console.error("❌ Redis Error:", err);
-  });
-    
-module.exports = { connectRedis };
+//if error occurs,
+connectRedis.on('error', (err) => {
+  console.error('❌ Redis Error:', err);
+});
+
+module.exports = connectRedis;

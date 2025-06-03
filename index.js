@@ -1,11 +1,11 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 app.use(express.json());
-const cors = require("cors");
-require("dotenv").config();
+const cors = require('cors');
+require('dotenv').config();
 
 //app.use(cors());
-const allowedOrigin = ["http://192.168.1.5:5173"];
+const allowedOrigin = ['http://192.168.216.183:5173'];
 
 app.use(
   cors({
@@ -16,62 +16,64 @@ app.use(
       if (allowedOrigin.includes(origin)) {
         return callBack(null, true);
       } else {
-        return callBack(new Error("Not Allowed this Origin", false));
+        return callBack(new Error('Not Allowed this Origin', false));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
   })
 );
-const cookieParser = require("cookie-parser");
-const mongoose = require("mongoose");
-const cloudinary = require("cloudinary");
+const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
+const cloudinary = require('cloudinary');
 app.use(cookieParser());
 
-const { connectRedis } = require("./utils/redisClient");
+const { connectRedis } = require('./utils/redisClient');
 
-const webhookRoute = require("./routes/webhookRoute");
-const userRoute = require("./routes/userRoutes");
-const apiRoute = require("./routes/apiRoutes");
-const fileRoute = require("./routes/userSideFileROute");
-const { initSocket } = require("./utils/socket");
-const contactRoute = require("./routes/contactRoutes");
-const message = require("./routes/messageRoutes");
-const paymentRouter = require("./routes/paymentRoutes");
-const agendaDefine = require("./job/define");
-const agenda = require("./job/agend");
-const autoReplyRoute = require("./routes/autoReplyRoutes");
+const webhookRoute = require('./routes/webhookRoute');
+const userRoute = require('./routes/userRoutes');
+const apiRoute = require('./routes/apiRoutes');
+const fileRoute = require('./routes/userSideFileROute');
+const { initSocket } = require('./utils/socket');
+const contactRoute = require('./routes/contactRoutes');
+const message = require('./routes/messageRoutes');
+const paymentRouter = require('./routes/paymentRoutes');
+const agendaDefine = require('./job/define');
+const agenda = require('./job/agend');
+const autoReplyRoute = require('./routes/autoReplyRoutes');
+const profileRoute = require('./routes/profileRoutes');
 
-app.use("/api", apiRoute);
-app.use("/webhook", webhookRoute);
-app.use("/user", userRoute);
-app.use("/contact", contactRoute);
-app.use("/file", fileRoute);
-app.use("/message", message);
-app.use("/payment", paymentRouter);
-app.use("/auto-reply", autoReplyRoute);
+app.use('/api', apiRoute);
+app.use('/webhook', webhookRoute);
+app.use('/user', userRoute);
+app.use('/contact', contactRoute);
+app.use('/file', fileRoute);
+app.use('/message', message);
+app.use('/payment', paymentRouter);
+app.use('/auto-reply', autoReplyRoute);
+app.use('/profile', profileRoute);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,
   api_key: process.env.api_key,
-  api_secret: process.env.api_secret,
+  api_secret: process.env.api_secret
 });
 
 mongoose
   .connect(process.env.mongo_url)
-  .then(() => console.log("Connected to DB!"))
-  .catch((err) => console.log("DB Connection Error:", err));
+  .then(() => console.log('Connected to DB!'))
+  .catch((err) => console.log('DB Connection Error:', err));
 
 // connectRedis();
 
 // agenda
 (async function () {
   await agenda.start();
-  console.log("✅ Agenda is running...");
+  console.log('✅ Agenda is running...');
 })();
 
 const PORT = process.env.PORT || 80;
-const server = app.listen(PORT, "0.0.0.0", () =>
+const server = app.listen(PORT, '0.0.0.0', () =>
   console.log(`Server is running on port ${PORT}`)
 );
 initSocket(server);

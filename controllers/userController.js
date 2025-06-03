@@ -1,9 +1,9 @@
-const User = require("../Model/User");
-const { sendOTP, mailOptions, generateOTP } = require("../utils/otpSend");
-const { connectRedis } = require("../utils/redisClient");
-const bcryptjs = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const User = require('../Model/User');
+const { sendOTP, mailOptions, generateOTP } = require('../utils/otpSend');
+const connectRedis = require('../utils/redisClient');
+const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const sendOtp = async (req, res) => {
   const { email: reqEmail } = req.body;
@@ -13,30 +13,37 @@ const sendOtp = async (req, res) => {
     if (!email)
       return res
         .status(401)
-        .json({ success: false, message: "Email is required" });
+        .json({ success: false, message: 'Email is required' });
+
+    // check if user already exists
+    //if user exists return user already exists response
     const user = await User.findOne({ email });
     if (user) {
-      console.log("user Exists");
+      console.log('user Exists');
       return res
         .status(401)
-        .json({ success: false, message: "USer Already Exists please login" });
+        .json({ success: false, message: 'USer Already Exists please login' });
     }
 
     const otp = generateOTP();
-   const mailOptionsInstance = mailOptions({title:"Verify Your Email",email, message:{text:"Verify Your Email",main:null,sub:null}, otp});
+    const mailOptionsInstance = mailOptions({
+      title: 'Verify Your Email',
+      email,
+      message: { text: 'Verify Your Email', main: null, sub: null },
+      otp
+    });
     const sendOtp = await sendOTP(email, mailOptionsInstance, otp);
     if (!sendOtp)
       return res
         .status(401)
-        .json({ success: false, message: "Error while sending OTP" });
+        .json({ success: false, message: 'Error while sending OTP' });
 
-    const redis = await connectRedis();
-    redis.set(email, sendOtp, { EX: 600 });
+    await connectRedis.set(email, sendOtp, 'EX', 600);
     return res
       .status(201)
-      .json({ success: true, message: "OTP sent successfully" });
+      .json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
-    console.error("Error in sendOtp:", error);
+    console.error('Error in sendOtp:', error);
     return res.status(501).json({ success: false, message: error.message });
   }
 };
@@ -47,54 +54,53 @@ const verifyOtpAndRegister = async (req, res) => {
     if (!email || !otp)
       return res
         .status(401)
-        .json({ success: false, message: "Email and OTP are required" });
-    const redis = await connectRedis();
-    const storedOtp = await redis.get(email);
+        .json({ success: false, message: 'Email and OTP are required' });
+    const storedOtp = await connectRedis.get(email);
     if (storedOtp !== otp)
-      return res.status(401).json({ success: false, message: "Invalid OTP" });
+      return res.status(401).json({ success: false, message: 'Invalid OTP' });
 
     if (!name || !password || !mobileNumber)
       return res.status(401).json({
         success: false,
-        message: "Name, password and mobile number are required",
+        message: 'Name, password and mobile number are required'
       });
     const hashedPassword = await bcryptjs.hash(password, 10);
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      mobileNumber,
+      mobileNumber
     });
     if (!user)
       return res
         .status(401)
-        .json({ success: false, message: "Error while creating user" });
+        .json({ success: false, message: 'Error while creating user' });
     const maxAge = 1000 * 60 * 60 * 24; // 1 day
     const jwtFun = (id) => {
       return jwt.sign({ id }, process.env.secret_url_jwt, {
-        expiresIn: maxAge,
+        expiresIn: maxAge
       });
     };
 
     const token = await jwtFun(user._id);
 
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       httpOnly: true,
       maxAge,
       secure: false,
-      sameSite: "none",
+      sameSite: 'none'
     });
     return res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: 'User registered successfully',
       user,
-      token,
+      token
     });
   } catch (error) {
-    console.error("Error in verifyOtp:", error);
+    console.error('Error in verifyOtp:', error);
     return res
       .status(501)
-      .json({ success: false, message: "Internal Server Error" });
+      .json({ success: false, message: 'Internal Server Error' });
   }
 };
 
@@ -104,19 +110,19 @@ const userBusinessDetails = async (req, res) => {
   if (!userId)
     return res
       .status(401)
-      .json({ success: false, message: "User ID is required" });
+      .json({ success: false, message: 'User ID is required' });
 
   try {
     if (!businessName || !address || !pincode || !state)
       return res.status(401).json({
         success: false,
-        message: "Business name, address, pincode and state are required",
+        message: 'Business name, address, pincode and state are required'
       });
     const user = await User.findById(userId);
     if (!user)
       return res
         .status(401)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: 'User not found' });
 
     user.businessName = businessName;
     user.address = address;
@@ -127,18 +133,18 @@ const userBusinessDetails = async (req, res) => {
     if (!updatedUser) {
       return res
         .status(401)
-        .json({ success: false, message: "Error while updating user" });
+        .json({ success: false, message: 'Error while updating user' });
     }
     return res.status(201).json({
       success: true,
-      message: "Business details updated successfully",
-      user,
+      message: 'Business details updated successfully',
+      user
     });
   } catch (error) {
-    console.error("Error in userBusinessDetails:", error);
+    console.error('Error in userBusinessDetails:', error);
     return res
       .status(501)
-      .json({ success: false, message: "Internal Server Error" });
+      .json({ success: false, message: 'Internal Server Error' });
   }
 };
 
@@ -148,7 +154,7 @@ const login = async (req, res) => {
   if (!email || !password) {
     return res
       .status(401)
-      .json({ success: false, message: "Email and password are required" });
+      .json({ success: false, message: 'Email and password are required' });
   }
 
   try {
@@ -156,37 +162,35 @@ const login = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: 'User not found' });
     }
 
     const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch)
       return res
         .status(401)
-        .json({ success: false, message: "Invalid password" }); //
+        .json({ success: false, message: 'Invalid password' }); //
 
     const maxAge = 1000 * 60 * 60 * 24 * 3; // 3 day
     const token = jwt.sign({ id: user._id }, process.env.secret_url_jwt, {
-      expiresIn: maxAge,
+      expiresIn: maxAge
     });
 
-    res.cookie("jwt", token, {
+    res.cookie('jwt', token, {
       httpOnly: true,
       maxAge,
       secure: false,
-      sameSite: "lax",
+      sameSite: 'lax'
     });
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "User logged in successfully",
-        user,
-        token,
-      });
+    return res.status(201).json({
+      success: true,
+      message: 'User logged in successfully',
+      user,
+      token
+    });
   } catch (error) {
-    console.error("Error in login:", error);
-    return res.status(501).json({ success: false, message: "Server error" });
+    console.error('Error in login:', error);
+    return res.status(501).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -196,19 +200,19 @@ const getUser = async (req, res) => {
   if (!userId) {
     return res
       .status(401)
-      .json({ success: false, message: "User ID is required" });
+      .json({ success: false, message: 'User ID is required' });
   }
   try {
     const user = await User.findById(userId);
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: 'User not found' });
     }
-    return res.status(201).json({ success: true, message: "User found", user });
+    return res.status(201).json({ success: true, message: 'User found', user });
   } catch (error) {
-    console.error("get user error:", error);
-    return res.status(501).json({ success: false, message: "Server error" });
+    console.error('get user error:', error);
+    return res.status(501).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -219,33 +223,31 @@ const logout = async (req, res) => {
   if (!userId) {
     return res.status(401).json({
       success: false,
-      message: "User ID is required",
+      message: 'User ID is required'
     });
   }
 
   try {
     // Clear the JWT cookie by setting it to an empty string with minimal expiration
-    res.cookie("jwt", "", {
+    res.cookie('jwt', '', {
       httpOnly: true,
-      sameSite: "Lax",
-      secure: process.env.NODE_ENV === "production", // only secure in production
-      maxAge: 1,
+      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === 'production', // only secure in production
+      maxAge: 1
     });
 
     return res.status(200).json({
       success: true,
-      message: "User logged out successfully",
+      message: 'User logged out successfully'
     });
-
   } catch (error) {
-    console.error("Error in logout:", error);
+    console.error('Error in logout:', error);
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: 'Server error'
     });
   }
 };
-
 
 //development time lo
 const allAccountsDelete = async (req, res) => {
@@ -253,10 +255,10 @@ const allAccountsDelete = async (req, res) => {
     await User.deleteMany();
     return res
       .status(201)
-      .json({ success: true, message: "All accounts deleted successfully" });
+      .json({ success: true, message: 'All accounts deleted successfully' });
   } catch (error) {
     console.log(error.message);
-    return res.status(501).json({ success: false, message: "Server error" });
+    return res.status(501).json({ success: false, message: 'Server error' });
   }
 };
 
