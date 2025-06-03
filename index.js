@@ -42,6 +42,7 @@ const agendaDefine = require('./job/define');
 const agenda = require('./job/agend');
 const autoReplyRoute = require('./routes/autoReplyRoutes');
 const profileRoute = require('./routes/profileRoutes');
+const forgotPasswordRoute = require('./routes/forgotPasswordRoutes');
 
 app.use('/api', apiRoute);
 app.use('/webhook', webhookRoute);
@@ -52,6 +53,7 @@ app.use('/message', message);
 app.use('/payment', paymentRouter);
 app.use('/auto-reply', autoReplyRoute);
 app.use('/profile', profileRoute);
+app.use('/forgot-password', forgotPasswordRoute);
 
 cloudinary.v2.config({
   cloud_name: process.env.cloud_name,
