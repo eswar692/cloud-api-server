@@ -1,15 +1,15 @@
-const Api = require("../Model/Api");
-const Payment = require("../Model/Payment");
-const axios = require("axios");
-const Razorpay = require("razorpay");
-require("dotenv").config();
-const crypto = require("crypto");
-const agenda = require("../job/agend");
+const Api = require('../Model/Api');
+const Payment = require('../Model/Payment');
+const axios = require('axios');
+const Razorpay = require('razorpay');
+require('dotenv').config();
+const crypto = require('crypto');
+const agenda = require('../job/agend');
 
 //razorpay
 const razorpay = new Razorpay({
   key_id: process.env.key,
-  key_secret: process.env.key_secret,
+  key_secret: process.env.key_secret
 });
 
 const paymentOrder = async (req, res) => {
@@ -19,87 +19,87 @@ const paymentOrder = async (req, res) => {
   if (!userId) {
     return res
       .status(401)
-      .json({ success: false, message: "User ID is required" });
+      .json({ success: false, message: 'User ID is required' });
   }
   try {
     const user = await Api.findOne({ userId });
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: 'User not found' });
     }
     if (!plan) {
       return res
         .status(401)
-        .json({ success: false, message: "Plan is required" });
+        .json({ success: false, message: 'Plan is required' });
     }
 
-    if (plan === "free-Plan") {
+    if (plan === 'free-Plan') {
       const payment = await Payment.create({
         userId: user.userId,
-        freePlanActive: "active",
-        plan: "free-Plan",
+        freePlanActive: 'active',
+        plan: 'free-Plan',
         amount: 0,
         createdAt: Math.floor(Date.now() / 1000),
         endPlanDate: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
-        messageLimit: 100,
+        messageLimit: 100
       });
       return res
         .status(201)
-        .json({ success: true, message: "Free Plan Purchased", payment });
+        .json({ success: true, message: 'Free Plan Purchased', payment });
     }
 
     // basic-plan
-    if (plan === "basic-Plan") {
+    if (plan === 'basic-Plan') {
       const option = {
-        amount:  1416* 100,  //1416 rupees with tax ammount
+        amount: 1416 * 100, //1416 rupees with tax ammount
         currency: country,
-        receipt: `req${Date.now()}`,
+        receipt: `req${Date.now()}`
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
       if (!order) {
         return res
           .status(401)
-          .json({ success: false, message: "Order not created" });
+          .json({ success: false, message: 'Order not created' });
       }
-      let payment = await Payment.findOne({ userId });                 
+      let payment = await Payment.findOne({ userId });
 
       if (!payment) {
         const paymentCreate = await Payment.create({
           userId: user.userId,
           paymentDetails: {
             order_id: order?.id,
-            status: "pending",
-          },
+            status: 'pending'
+          }
         });
       } else if (payment) {
         if (!payment.paymentDetails) {
           payment.paymentDetails = {};
         }
         payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
+        payment.paymentDetails.status = 'pending';
         const updatePlanReq = await payment.save();
       }
 
       return res
         .status(201)
-        .json({ success: true, message: "Basic Plan Order Created", order });
+        .json({ success: true, message: 'Basic Plan Order Created', order });
     }
 
     // standard-plan
-    if (plan === "standard-Plan") {
+    if (plan === 'standard-Plan') {
       const option = {
         amount: 2360 * 100, //2360 rupees with tax ammount
         currency: country,
-        receipt: `req${Date.now()}`,
+        receipt: `req${Date.now()}`
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
       if (!order) {
         return res
           .status(401)
-          .json({ success: false, message: "Order not created" });
+          .json({ success: false, message: 'Order not created' });
       }
       const payment = await Payment.findOne({ userId });
 
@@ -108,28 +108,28 @@ const paymentOrder = async (req, res) => {
           userId: user.userId,
           paymentDetails: {
             order_id: order?.id,
-            status: "pending",
-          },
+            status: 'pending'
+          }
         });
       } else if (payment) {
         if (!payment.paymentDetails) {
           payment.paymentDetails = {};
         }
         payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
+        payment.paymentDetails.status = 'pending';
         const updatePlanReq = await payment.save();
       }
       return res
         .status(201)
-        .json({ success: true, message: "standard Plan order created", order });
+        .json({ success: true, message: 'standard Plan order created', order });
     }
 
     // Business-Plan
-    if (plan === "business-Plan") {
+    if (plan === 'business-Plan') {
       const option = {
         amount: 3540 * 100, //3540 rupees with tax ammount atual ammout 3000
         currency: country,
-        receipt: `req${Date.now()}`,
+        receipt: `req${Date.now()}`
       };
       // Oder Api calls
       const order = await razorpay.orders.create(option);
@@ -140,27 +140,27 @@ const paymentOrder = async (req, res) => {
           userId: user.userId,
           paymentDetails: {
             order_id: order?.id,
-            status: "pending",
-          },
+            status: 'pending'
+          }
         });
       } else if (payment) {
         if (!payment.paymentDetails) {
           payment.paymentDetails = {};
         }
         payment.paymentDetails.order_id = order?.id;
-        payment.paymentDetails.status = "pending";
+        payment.paymentDetails.status = 'pending';
         const updatePlanReq = await payment.save();
       }
 
       return res
         .status(201)
-        .json({ success: true, message: "business Plan order created", order });
+        .json({ success: true, message: 'business Plan order created', order });
     }
 
-    return res.status(201).json({ success: false, message: "Plan not found" });
+    return res.status(201).json({ success: false, message: 'Plan not found' });
   } catch (error) {
-    console.error("get user error:", error);
-    return res.status(501).json({ success: false, message: "Server error" });
+    console.error('get user error:', error);
+    return res.status(501).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -174,46 +174,51 @@ const verifyPayment = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: 'User not found' });
     }
 
     const payment = await Payment.findOne({ userId });
     if (!payment) {
       return res
         .status(401)
-        .json({ success: false, message: "Payment not found" });
+        .json({ success: false, message: 'Payment not found' });
     }
 
     const rzrSecreteKey = process.env.key_secret;
-    const dataBody = razorpay_order_id + "|" + razorpay_payment_id;
+    const dataBody = razorpay_order_id + '|' + razorpay_payment_id;
     const signatureVerify = crypto
-      .createHmac("sha256", rzrSecreteKey)
+      .createHmac('sha256', rzrSecreteKey)
       .update(dataBody.toString())
-      .digest("hex");
+      .digest('hex');
 
     if (signatureVerify === razorpay_signature) {
       const timeInSeconds = Math.floor(Date.now() / 1000);
 
       payment.plan = plan;
       payment.amount =
-        plan === "basic-Plan" ? 1199 : (plan==="standard-Plan"?1999 :(plan==="business-Plan"?2999:0));
-          
+        plan === 'basic-Plan'
+          ? 1199
+          : plan === 'standard-Plan'
+          ? 1999
+          : plan === 'business-Plan'
+          ? 2999
+          : 0;
 
       payment.createdAt = timeInSeconds;
-      payment.endPlanDate = timeInSeconds + (30 * 24 * 60 * 60);
+      payment.endPlanDate = timeInSeconds + 30 * 24 * 60 * 60;
       payment.messageLimit =
-        plan === "basic-Plan"
+        plan === 'basic-Plan'
           ? 7000
-          : plan === "standard-Plan"
+          : plan === 'standard-Plan'
           ? 10000
-          : plan === "business-Plan"
-          ? "unlimited"
+          : plan === 'business-Plan'
+          ? 'unlimited'
           : 0;
 
       payment.paymentDetails = {
         payment_id: razorpay_payment_id,
         signature: razorpay_signature,
-        status: "success",
+        status: 'success'
       };
 
       const paymentInfo = await razorpay.payments.fetch(razorpay_payment_id);
@@ -223,7 +228,7 @@ const verifyPayment = async (req, res) => {
         payment.paymentDetails.invoice_id = invoice.id;
         payment.paymentDetails.invoice_url = invoice.short_url;
       } else {
-        console.log("No invoice associated");
+        console.log('No invoice associated');
       }
       payment.messageCountTracker = 0;
 
@@ -231,43 +236,43 @@ const verifyPayment = async (req, res) => {
       if (!updatePlan)
         return res
           .status(501)
-          .json({ success: false, message: "Plan not updated" });
+          .json({ success: false, message: 'Plan not updated' });
 
       //job sceduling
       const PlanEndAlert = await agenda.schedule(
         new Date((payment.endPlanDate - 2 * 24 * 60 * 60) * 1000),
-        "plan-alert", 
+        'plan-alert',
         {
-          userId: user.userId,
+          userId: user.userId
         }
       );
 
       // expire Automatics task function
       const ExpirePlan = await agenda.schedule(
         new Date(payment.endPlanDate * 1000),
-        "plan-expire",
+        'plan-expire',
         {
-          userId: user.userId,
+          userId: user.userId
         }
       );
 
       return res.status(201).json({
         success: true,
-        message: "Payment verified successfully",
-        invoice: payment.paymentDetails.invoice_url || null,
+        message: 'Payment verified successfully',
+        invoice: payment.paymentDetails.invoice_url || null
       });
     } else {
-      payment.paymentDetails.status = "failed";
+      payment.paymentDetails.status = 'failed';
       await payment.save();
       return res
         .status(501)
-        .json({ success: false, message: "Payment verification failed" });
+        .json({ success: false, message: 'Payment verification failed' });
     }
   } catch (error) {
     console.log(error);
     return res
       .status(501)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -278,19 +283,19 @@ const getPayment = async (req, res) => {
     if (!payment) {
       return res
         .status(401)
-        .json({ success: false, message: "Payment not found" });
+        .json({ success: false, message: 'Payment not found' });
     }
     return res.status(200).json({ success: true, payment });
   } catch (error) {
     console.log(error);
     return res
       .status(500) // 🔁 500 is better than 501
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: 'Internal server error' });
   }
 };
 
 module.exports = {
   paymentOrder,
   verifyPayment,
-  getPayment,
+  getPayment
 };

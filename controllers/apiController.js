@@ -1,7 +1,7 @@
-const Api = require("../Model/Api");
-const User = require("../Model/User");
-const axios = require("axios");
-const { connectRedis } = require("../utils/redisClient");
+const Api = require('../Model/Api');
+const User = require('../Model/User');
+const axios = require('axios');
+const { connectRedis } = require('../utils/redisClient');
 
 const api = async (req, res) => {
   const userId = req.userId;
@@ -9,7 +9,7 @@ const api = async (req, res) => {
   if (!whatsappId || !phoneNumberId || !accessToken || !userId) {
     return res.status(401).json({
       success: false,
-      message: "Please provide all required fields",
+      message: 'Please provide all required fields'
     });
   }
   try {
@@ -17,24 +17,24 @@ const api = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: 'User not found'
       });
     }
     const api = await Api.create({
       userId: user._id,
       whatsappId,
       phoneNumberId,
-      accessToken,
+      accessToken
     });
 
     res.status(201).json({
       success: true,
-      message: "API is working",
+      message: 'API is working'
     });
   } catch (error) {
     res.status(501).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
   }
 };
@@ -44,7 +44,7 @@ const getApi = async (req, res) => {
   if (!userId) {
     return res.status(401).json({
       success: false,
-      message: "User ID is required",
+      message: 'User ID is required'
     });
   }
   try {
@@ -52,19 +52,19 @@ const getApi = async (req, res) => {
     if (!api) {
       return res.status(401).json({
         success: false,
-        message: "API not found",
+        message: 'API not found'
       });
     }
     const data = api;
 
     res.status(201).json({
       success: true,
-      data: api[0],
+      data: api[0]
     });
   } catch (error) {
     res.status(501).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
   }
 };
@@ -75,7 +75,7 @@ const getCloudApiDetails = async (req, res) => {
   if (!userId) {
     return res.status(401).json({
       success: false,
-      message: "User ID is required",
+      message: 'User ID is required'
     });
   }
   try {
@@ -106,7 +106,7 @@ const getCloudApiDetails = async (req, res) => {
     if (!api) {
       return res.status(401).json({
         success: false,
-        message: "API not found",
+        message: 'API not found'
       });
     }
     // Check if the API is already stored in Redis
@@ -123,17 +123,18 @@ const getCloudApiDetails = async (req, res) => {
         {
           headers: {
             Authorization: `Bearer ${api.accessToken}`,
-            "Content-Type": "application/json",
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
       if (!data) {
         return res.status(401).json({
           success: false,
-          message: "API not found",
+          message: 'API not found'
         });
       }
-      const phoneNumber = data.display_phone_number.replace("/D/g", "");
+      const phoneNumber = data.display_phone_number.replace(/[+\s]/g, '');
+      console.log(phoneNumber);
       api.phoneNumber = phoneNumber;
       api.qualityRating = data.quality_rating;
       api.dispalyName = data.verified_name;
@@ -141,14 +142,14 @@ const getCloudApiDetails = async (req, res) => {
       if (!updatedApi) {
         return res.status(401).json({
           success: false,
-          message: "API not found",
+          message: 'API not found'
         });
       }
 
       return res.status(201).json({
         success: true,
-        message: "API is working",
-        data: updatedApi,
+        message: 'API is working',
+        data: updatedApi
       });
     }
 
@@ -158,8 +159,8 @@ const getCloudApiDetails = async (req, res) => {
         {
           headers: {
             Authorization: `Bearer ${api.accessToken}`,
-            "Content-Type": "application/json",
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
       if (data.verified_name !== api.dispalyName) {
@@ -173,14 +174,14 @@ const getCloudApiDetails = async (req, res) => {
 
       return res.status(201).json({
         success: true,
-        message: "API is working",
-        data: api,
+        message: 'API is working',
+        data: api
       });
     }
   } catch (error) {
     res.status(501).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
   }
 };
