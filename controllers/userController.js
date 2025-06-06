@@ -75,7 +75,7 @@ const verifyOtpAndRegister = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, message: 'Error while creating user' });
-    const maxAge = 1000 * 60 * 60 * 24; // 1 day
+    const maxAge = 1000 * 60 * 60 * 10; // 10 day
     const jwtFun = (id) => {
       return jwt.sign({ id }, process.env.secret_url_jwt, {
         expiresIn: maxAge
@@ -171,7 +171,7 @@ const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: 'Invalid password' }); //
 
-    const maxAge = 1000 * 60 * 60 * 24 * 3; // 3 day
+    const maxAge = 1000 * 60 * 60 * 24 * 10; // 10 day
     const token = jwt.sign({ id: user._id }, process.env.secret_url_jwt, {
       expiresIn: maxAge
     });
