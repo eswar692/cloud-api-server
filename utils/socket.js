@@ -56,8 +56,8 @@ const sendWebhooks = async (message, userId) => {
 
 const initSocket = (server) => {
   const allowedOrigin = [
-    'cloud-api-client-hd6byjmv3-yerubandi-eswara-prasads-projects.vercel.app',
-    'cloud-api-client.vercel.app'
+    'https://cloud-api-client-hd6byjmv3-yerubandi-eswara-prasads-projects.vercel.app',
+    'https://cloud-api-client.vercel.app'
   ];
   io = new Server(server, {
     cors: {

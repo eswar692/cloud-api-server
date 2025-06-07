@@ -5,27 +5,29 @@ const cors = require('cors');
 require('dotenv').config();
 
 //app.use(cors());
-const allowedOrigin = [
-  'cloud-api-client-hd6byjmv3-yerubandi-eswara-prasads-projects.vercel.app',
-  'cloud-api-client.vercel.app'
+const allowedOrigins = [
+  'https://cloud-api-client-hd6byjmv3-yerubandi-eswara-prasads-projects.vercel.app',
+  'https://cloud-api-client.vercel.app'
 ];
 
 app.use(
   cors({
-    origin: function (origin, callBack) {
+    origin: function (origin, callback) {
       if (!origin) {
-        return callBack(null, true);
+        // allow requests with no origin (e.g., mobile apps, curl, Postman)
+        return callback(null, true);
       }
-      if (allowedOrigin.includes(origin)) {
-        return callBack(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       } else {
-        return callBack(new Error('Not Allowed this Origin', false));
+        return callback(new Error('Not allowed by CORS'));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   })
 );
+
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary');
