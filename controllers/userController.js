@@ -84,11 +84,13 @@ const verifyOtpAndRegister = async (req, res) => {
 
     const token = await jwtFun(user._id);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie('jwt', token, {
       httpOnly: true,
       maxAge,
-      secure: false,
-      sameSite: 'none'
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax'
     });
     return res.status(201).json({
       success: true,
@@ -176,11 +178,13 @@ const login = async (req, res) => {
       expiresIn: maxAge
     });
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie('jwt', token, {
       httpOnly: true,
       maxAge,
-      secure: false,
-      sameSite: 'lax'
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax'
     });
     return res.status(201).json({
       success: true,
