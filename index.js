@@ -5,7 +5,10 @@ const cors = require('cors');
 require('dotenv').config();
 
 //app.use(cors());
-const allowedOrigin = ['http://192.168.19.183:5173'];
+const allowedOrigin = [
+  'cloud-api-client-hd6byjmv3-yerubandi-eswara-prasads-projects.vercel.app',
+  'cloud-api-client.vercel.app'
+];
 
 app.use(
   cors({

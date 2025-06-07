@@ -10,16 +10,16 @@ const contactSet = async (data) => {
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
 
   const contact = await Contact.findOne({
-    phoneNumber: message?.from
+    phoneNumber: message?.from,
+    userApiNumber: apiNumber
   });
   if (!contact) {
-    const timestamp = new Date(parseInt(message?.timestamp) * 1000);
     // if (!profileName || !message.from) return;
     const contact = await Contact.create({
       displayName: profileName,
       phoneNumber: message?.from,
       userApiNumber: apiNumber,
-      whatsappUserTime: timestamp.toString(),
+      whatsappUserTime: message?.timestamp,
       lastMessage: {
         messageType: message?.type,
         textMessage: message?.text?.body || null,
@@ -34,8 +34,7 @@ const contactSet = async (data) => {
       // await sendContacts(userId); socket emit edi
     }
   } else {
-    const timestamp = new Date(parseInt(message?.timestamp) * 1000);
-    contact.whatsappUserTime = timestamp.toString(); // update field
+    contact.whatsappUserTime = message?.timestamp; // update field
     contact.lastMessage = {
       displayName: profileName,
       messageType: message?.type,
