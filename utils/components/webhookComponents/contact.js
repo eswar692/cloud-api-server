@@ -3,6 +3,7 @@ const Contact = require('../.././../Model/Contact');
 const { sendContacts } = require('../../socket');
 
 const contactSet = async (data) => {
+  console.log('contact DB store function cal');
   const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
   const apiNumber =
     data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
@@ -13,8 +14,9 @@ const contactSet = async (data) => {
     phoneNumber: message?.from,
     userApiNumber: apiNumber
   });
+  console.log('contact', contact);
   if (!contact) {
-    // if (!profileName || !message.from) return;
+    console.log('contact not found');
     const contact = await Contact.create({
       displayName: profileName,
       phoneNumber: message?.from,
@@ -27,30 +29,17 @@ const contactSet = async (data) => {
         messageCount: 1
       }
     });
-
-    const userApi = await Api.findOne({ phoneNumber: contact.userApiNumber });
-    if (userApi) {
-      const userId = userApi.userId.toString();
-      // await sendContacts(userId); socket emit edi
-    }
   } else {
+    console.log('contact found');
+    contact.displayName = profileName;
     contact.whatsappUserTime = message?.timestamp; // update field
     contact.lastMessage = {
-      displayName: profileName,
       messageType: message?.type,
       textMessage: message?.text?.body || null,
       messageTimestamp: timestamp,
       messageCount: (contact.lastMessage?.messageCount || 0) + 1
     };
     const updatedContact = await contact.save(); // save the changes
-
-    const userApi = await Api.findOne({
-      phoneNumber: updatedContact.userApiNumber
-    });
-    if (userApi) {
-      const userId = userApi.userId.toString();
-      // await sendContacts(userId);
-    }
   }
 };
 
