@@ -235,7 +235,7 @@ const logout = async (req, res) => {
     // Clear the JWT cookie by setting it to an empty string with minimal expiration
     res.cookie('jwt', '', {
       httpOnly: true,
-      sameSite: 'Lax',
+      sameSite: 'none',
       secure: process.env.NODE_ENV === 'production', // only secure in production
       maxAge: 1
     });

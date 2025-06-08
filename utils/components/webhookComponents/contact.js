@@ -10,36 +10,40 @@ const contactSet = async (data) => {
   const profileName =
     data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
 
-  const contact = await Contact.findOne({
-    phoneNumber: message?.from,
-    userApiNumber: apiNumber
-  });
-  console.log('contact', contact);
-  if (!contact) {
-    console.log('contact not found');
-    const contact = await Contact.create({
-      displayName: profileName,
+  try {
+    const contact = await Contact.findOne({
       phoneNumber: message?.from,
-      userApiNumber: apiNumber,
-      whatsappUserTime: message?.timestamp,
-      lastMessage: {
+      userApiNumber: apiNumber
+    });
+    console.log('contact', contact);
+    if (!contact) {
+      console.log('contact not found');
+      const contact = await Contact.create({
+        displayName: profileName,
+        phoneNumber: message?.from,
+        userApiNumber: apiNumber,
+        whatsappUserTime: message?.timestamp,
+        lastMessage: {
+          messageType: message?.type,
+          textMessage: message?.text?.body || null,
+          messageTimestamp: message?.timestamp,
+          messageCount: 1
+        }
+      });
+    } else {
+      console.log('contact found');
+      contact.displayName = profileName;
+      contact.whatsappUserTime = message?.timestamp; // update field
+      contact.lastMessage = {
         messageType: message?.type,
         textMessage: message?.text?.body || null,
-        messageTimestamp: timestamp,
-        messageCount: 1
-      }
-    });
-  } else {
-    console.log('contact found');
-    contact.displayName = profileName;
-    contact.whatsappUserTime = message?.timestamp; // update field
-    contact.lastMessage = {
-      messageType: message?.type,
-      textMessage: message?.text?.body || null,
-      messageTimestamp: timestamp,
-      messageCount: (contact.lastMessage?.messageCount || 0) + 1
-    };
-    const updatedContact = await contact.save(); // save the changes
+        messageTimestamp: message?.timestamp,
+        messageCount: (contact.lastMessage?.messageCount || 0) + 1
+      };
+      const updatedContact = await contact.save(); // save the changes
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 

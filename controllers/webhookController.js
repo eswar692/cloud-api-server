@@ -23,58 +23,59 @@ const autoReplySend = require('../utils/components/webhookComponents/AutoReplySe
 
 getWebhooks = async (req, res) => {
   const data = req.body;
-  // All the data is present, and manam DB lo set chesaka next step whatsapp server ki 200 status code return cheyyali
-  if (data) {
-    res.status(200).json({
-      success: true,
-      message: 'Data received successfully'
-    });
+
+  if (!data) {
+    return res.status(401).json({ success: false, message: 'No data found' });
   }
 
-  //plan limit check function
+  // ✅ Always respond 200 to WhatsApp FIRST
+  res
+    .status(200)
+    .json({ success: true, message: 'Data received successfully' });
+
+  // ✅ Plan Limit Check
   const limitCheck = await PlanLimitCheck(data);
-  // if limit check is false, return 404 status with message
   if (!limitCheck) {
     console.log('Plan limit exceeded');
-    return res.status(404).json({ message: 'Plan limit exceeded' });
+    return;
   }
-  if (!data)
-    return res.status(401).json({ success: false, message: 'No data found' });
 
-  // facebook send chesina webhook ki return data vaste 200 status code return cheyali edi cheykapothe again facebook send same webhook
-
-  // Extracting necessary information from the webhook data
-  const message = data?.entry?.[0]?.changes?.[0].value?.messages?.[0];
-  const apiNumber =
-    data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
-
-  const profileName =
-    data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile.name;
-  let webhook;
-  // Check if the message, whatsappUserPhoneNumber, and apiNumber are present
-  const userApi = await Api.findOne({ phoneNumber: apiNumber });
   try {
-    // count all messages this is only track message count not store in DB only count track DB update chestundi
-    await messageCount(data);
-    // new message contact send to socket ante this function is used to send contact to frontend not store in DB in any messages ante instant update ki used chestamu temparay contact ni client send chestamu
-    await sendContacts(data);
-    // contact set function is used to store the contact in DB and update the contact if already exist
-    await contactSet(data);
+    // ✅ Extract data
+    const message = data?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const apiNumber =
+      data?.entry?.[0]?.changes?.[0]?.value?.metadata?.display_phone_number;
+    const profileName =
+      data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name;
 
-    // eppudu autoreply function call cheyyali incase function return true ante webhook fumction this functions tho stop avvali if autoreply is false vaste next webhook function call avuthundi
-    const autoReply = await autoReplySend(data);
-    if (autoReply) {
-      return res.status(200).json({
-        success: true,
-        message: 'Auto reply sent successfully'
-      });
+    if (!message || !apiNumber) {
+      console.warn('Missing message or API number');
+      return;
     }
 
-    // this start nundi messages store avuthayi as per category
+    const userApi = await Api.findOne({ phoneNumber: apiNumber });
+    if (!userApi) {
+      console.warn('API credentials not found for:', apiNumber);
+      return;
+    }
 
-    // Check if the message is a text message
+    // ✅ Parallel: non-dependent tasks
+    await Promise.all([
+      messageCount(data),
+      sendContacts(data),
+      contactSet(data)
+    ]);
 
-    switch (message?.type) {
+    // ✅ Autoreply check
+    const autoReply = await autoReplySend(data);
+    if (autoReply) {
+      console.log('Auto reply sent. Skipping message storage.');
+      return;
+    }
+
+    // ✅ Handle messages as per type
+    let webhook = null;
+    switch (message.type) {
       case 'text':
         await textMessage(data);
         break;
@@ -85,35 +86,21 @@ getWebhooks = async (req, res) => {
         webhook = await getFileWebhook(data, userApi.accessToken);
         break;
       default:
-        console.log('Unknown message type:', message?.type);
+        console.log('Unsupported message type:', message.type);
     }
 
-    // if (message?.type === "text") {
-    //   webhook = await textMessage(data);
+    // ✅ Send webhook to internal system (if needed)
+    if (userApi && webhook) {
+      const userId = userApi.userId.toString();
+      await sendWebhooks(webhook, userId);
+    }
 
-    // }
-
-    // if (
-    //   message?.type === "image" ||
-    //   message?.type === "video" ||
-    //   message?.type === "docs" ||
-    //   message?.type === "audio"
-    // ) {
-    //   console.log("file webhook");
-    //   webhook = await getFileWebhook(data, userApi.accessToken);
-    // }
-
-    // if (userApi || webhook) {
-    //   const userId = userApi.userId.toString();
-    //   await sendWebhooks(webhook, userId);
-    // }
-
+    // ✅ Final status update
     await messageStatus(data);
 
-    console.log('webhooks:', webhook);
+    console.log('Webhook processed successfully');
   } catch (err) {
-    console.error('Error in getWebhooks:', err);
-    res.status(501).json({ success: false, message: 'Server error' });
+    console.error('Error while processing webhook:', err);
   }
 };
 
